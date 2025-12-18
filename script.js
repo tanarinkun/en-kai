@@ -1,69 +1,46 @@
-// ===============================
-// EN-KAI メインロジック
-// ===============================
+const topics = {
+  casual: [
+    "最近ハマっている飲み物は？",
+    "最近あったちょっと良いこと",
+    "おすすめのコンビニ商品",
+    "子どもの頃好きだった遊び",
+    "最近笑った出来事"
+  ],
+  business: [
+    "最近の仕事での発見",
+    "仕事で大切にしていること",
+    "今後挑戦したいこと",
+    "理想の働き方",
+    "最近学んだこと"
+  ],
+  rec: [
+    "今の気分を天気で例えると？",
+    "最近体を動かした？",
+    "好きな音は？",
+    "深呼吸してみよう",
+    "今ここで見えるものを一つ"
+  ]
+};
 
-// 状態管理
-let currentStep = 0;
+let currentMode = null;
+let index = 0;
 
-// 会話フェーズ（必要最低限）
-const steps = [
-  {
-    title: "まずは軽く",
-    message: "最近あった、ちょっとした出来事を一人ずつ話してみよう。"
-  },
-  {
-    title: "少し広げる",
-    message: "最近ハマっていることや、気になっていることはある？"
-  },
-  {
-    title: "場を温める",
-    message: "子どもの頃に好きだったものを思い出してみよう。"
-  },
-  {
-    title: "締めに向けて",
-    message: "今日集まってよかったと思ったことを一つだけ。"
-  }
-];
+function selectMode(mode, btn) {
+  currentMode = mode;
+  index = 0;
 
-// DOM取得
-const startBtn = document.getElementById("startBtn");
-const endScreen = document.getElementById("endScreen");
-const closeBtn = document.getElementById("closeBtn");
-const mainArea = document.querySelector(".main-area");
+  document.querySelectorAll(".mode-btn").forEach(b =>
+    b.classList.remove("active")
+  );
+  btn.classList.add("active");
 
-// 表示更新
-function renderStep() {
-  mainArea.innerHTML = `
-    <h2>${steps[currentStep].title}</h2>
-    <p>${steps[currentStep].message}</p>
-    <button id="nextBtn">次へ</button>
-  `;
-
-  document.getElementById("nextBtn").addEventListener("click", nextStep);
+  document.getElementById("topic-text").textContent =
+    topics[mode][index];
 }
 
-// 次のステップへ
-function nextStep() {
-  currentStep++;
-
-  if (currentStep < steps.length) {
-    renderStep();
-  } else {
-    showEndScreen();
-  }
+function nextTopic() {
+  if (!currentMode) return;
+  index = (index + 1) % topics[currentMode].length;
+  document.getElementById("topic-text").textContent =
+    topics[currentMode][index];
 }
-
-// 終了画面表示
-function showEndScreen() {
-  mainArea.innerHTML = "";
-  endScreen.classList.remove("hidden");
-}
-
-// イベント
-startBtn.addEventListener("click", () => {
-  renderStep();
-});
-
-closeBtn.addEventListener("click", () => {
-  window.scrollTo({ top: 0, behavior: "smooth" });
-});

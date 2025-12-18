@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>EN-KAI｜場の進行サポート</title>
+  <title>プロフィール｜EN-KAI</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="style.css">
 </head>
@@ -18,36 +18,25 @@
     <span class="logo-sub">場の進行サポート</span>
   </a>
   <nav class="nav">
-    <a href="creator.html">プロフィール</a>
+    <a href="index.html">ホームに戻る</a>
   </nav>
 </header>
 
 <main>
-  <div class="home-container">
+  <div class="creator-container">
+    <h1>製作者プロフィール</h1>
 
-    <h1>無理に盛り上げなくていい</h1>
+    <p>
+      名前：たなりんくん<br>
+      生年月日：2007年2月3日
+    </p>
+
     <p class="lead">
-      飲み会・懇親会・レクリエーションなど、<br>
-      進行役の負担を軽くするためのサポートツールです。
+      「進行役が一番しんどい」という実体験から、<br>
+      無理に盛り上げなくても場が回るツールとして EN-KAI を制作。
     </p>
 
-    <div class="mode-select">
-      <button class="mode-btn" onclick="selectMode('casual', this)">カジュアル</button>
-      <button class="mode-btn" onclick="selectMode('business', this)">ビジネス</button>
-      <button class="mode-btn" onclick="selectMode('rec', this)">レクリエーション</button>
-    </div>
-
-    <div class="topic-area">
-      <p id="topic-text">テーマを選択してください</p>
-    </div>
-
-    <button class="next-btn" onclick="nextTopic()">次の話題</button>
-
-    <p class="note">
-      ・音は出ません<br>
-      ・操作は進行役だけでOK
-    </p>
-
+    <a class="home-btn" href="index.html">ホームに戻る</a>
   </div>
 </main>
 
@@ -64,6 +53,5 @@
   </p>
 </footer>
 
-<script src="script.js"></script>
 </body>
 </html>

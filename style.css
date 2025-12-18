@@ -1,90 +1,121 @@
-body {
+* {
+  box-sizing: border-box;
   margin: 0;
-  font-family: "Helvetica Neue", Arial, sans-serif;
-  background: #f7f7f7;
-  color: #222;
+  padding: 0;
+  font-family: system-ui, sans-serif;
 }
 
+body {
+  background: #ffffff;
+  color: #111;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ヘッダー */
 .header {
-  text-align: center;
-  padding: 20px 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 24px;
+  border-bottom: 1px solid #e5e7eb;
 }
 
-.logo {
-  font-size: 36px;
-  font-weight: bold;
-  letter-spacing: 2px;
+.logo-area {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  color: #111;
 }
 
-.logo-main {
-  color: #222;
+.logo-svg {
+  height: 36px;
 }
 
 .logo-sub {
-  color: #777;
-}
-
-.tagline {
-  font-size: 14px;
-  color: #666;
-  margin-top: 5px;
-}
-
-.container {
-  max-width: 600px;
-  margin: 0 auto;
-  padding: 20px;
-}
-
-.start-info p {
-  font-size: 14px;
+  font-size: 12px;
   color: #555;
 }
 
-.main-area {
+.nav a {
+  text-decoration: none;
+  font-size: 14px;
+  color: #111;
+}
+
+/* メイン */
+main {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  padding: 40px 16px;
+}
+
+.home-container,
+.creator-container {
+  max-width: 720px;
+  width: 100%;
   text-align: center;
-  margin: 40px 0;
 }
 
-button {
-  padding: 12px 24px;
-  font-size: 16px;
-  border: none;
-  background: #222;
-  color: #fff;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-button:hover {
-  background: #444;
-}
-
-.end-screen {
-  text-align: center;
-  margin-top: 40px;
-}
-
-.end-message {
+h1 {
   margin-bottom: 20px;
 }
 
-.hidden {
-  display: none;
+.lead {
+  margin-bottom: 24px;
+  line-height: 1.8;
+  color: #444;
 }
 
+/* テーマボタン */
+.mode-select {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.mode-btn {
+  width: 160px;
+  padding: 12px;
+  border: 1px solid #ccc;
+  background: #f9fafb;
+  cursor: pointer;
+}
+
+.mode-btn.active {
+  background: #111;
+  color: #fff;
+}
+
+/* 話題 */
+.topic-area {
+  min-height: 2em;
+  font-size: 18px;
+  margin-bottom: 20px;
+}
+
+/* ボタン */
+.next-btn,
+.home-btn {
+  padding: 10px 16px;
+  border: 1px solid #ccc;
+  background: #f3f4f6;
+  text-decoration: none;
+  color: #111;
+}
+
+/* フッター */
 .footer {
+  border-top: 1px solid #e5e7eb;
   text-align: center;
   font-size: 12px;
-  color: #777;
-  padding: 20px 0;
+  padding: 16px;
 }
 
 .footer a {
-  color: #777;
-  text-decoration: none;
-}
-
-.footer a:hover {
-  text-decoration: underline;
+  color: #111;
 }
