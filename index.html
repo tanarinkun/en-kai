@@ -1,67 +1,78 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <title>EN-KAI｜場の進行サポート</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>場の進行サポート</title>
+    <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<header class="header">
-  <a href="index.html" class="logo-area">
-    <svg class="logo-svg" viewBox="0 0 200 60">
-      <circle cx="30" cy="30" r="20" fill="none" stroke="#111" stroke-width="3"/>
-      <line x1="30" y1="15" x2="30" y2="45" stroke="#111" stroke-width="3"/>
-      <text x="70" y="38" font-size="26" font-weight="700">EN-KAI</text>
-    </svg>
-    <span class="logo-sub">場の進行サポート</span>
-  </a>
-  <nav class="nav">
-    <a href="creator.html">プロフィール</a>
-  </nav>
+<header>
+    <a href="index.html" class="logo-link">
+        <svg width="40" height="40" viewBox="0 0 100 100">
+            <circle cx="50" cy="50" r="45" stroke="#50C878" stroke-width="8" fill="#fff"/>
+            <text x="50%" y="55%" text-anchor="middle" font-size="40" fill="#50C878" font-family="M PLUS Rounded 1c">EN</text>
+        </svg>
+        <span>EN-KAI</span>
+    </a>
+    <button class="menu-btn" onclick="toggleMenu()">☰ メニュー</button>
+    <nav id="header-menu" class="menu-hidden">
+        <ul>
+            <li><a href="index.html">ホーム</a></li>
+            <li><a href="creator.html">プロフィール</a></li>
+            <li><a href="ads.html">広告</a></li>
+            <li><a href="terms.html">利用規約</a></li>
+            <li><a href="privacy.html">プライバシーポリシー</a></li>
+        </ul>
+    </nav>
 </header>
 
-<main>
-  <div class="home-container">
+<div class="container">
+    <div id="start-screen" class="screen active">
+        <h1 class="main-title">場の進行サポート</h1>
+        <p class="catchphrase"><span>無理に盛り上げなくて大丈夫です</span></p>
+        
+        <p class="intro-text">
+            飲み会・懇親会・レクリエーションなど、<br>
+            人が集まる場の進行を静かに手助けします。
+        </p>
 
-    <h1>無理に盛り上げなくていい</h1>
-    <p class="lead">
-      飲み会・懇親会・レクリエーションなど、<br>
-      進行役の負担を軽くするためのサポートツールです。
-    </p>
-
-    <div class="mode-select">
-      <button class="mode-btn" onclick="selectMode('casual', this)">カジュアル</button>
-      <button class="mode-btn" onclick="selectMode('business', this)">ビジネス</button>
-      <button class="mode-btn" onclick="selectMode('rec', this)">レクリエーション</button>
+        <div class="mode-selector">
+            <div class="mode-option">
+                <input type="radio" name="mode" value="casual" id="m1" checked>
+                <label for="m1">🍃 カジュアル（飲み会向け）</label>
+            </div>
+            <div class="mode-option">
+                <input type="radio" name="mode" value="business" id="m2">
+                <label for="m2">👔 ビジネス（懇親会・研修）</label>
+            </div>
+            <div class="mode-option">
+                <input type="radio" name="mode" value="rec" id="m3">
+                <label for="m3">🎈 レクリエーション</label>
+            </div>
+        </div>
+        
+        <button class="start-btn" onclick="onStartClicked()">▶ 今すぐ始める</button>
+        <p class="footer-note">※ 操作するのは進行役の方だけで大丈夫です</p>
     </div>
 
-    <div class="topic-area">
-      <p id="topic-text">テーマを選択してください</p>
+    <div id="main-screen" class="screen">
+        <div id="display-area">
+            <p id="topic-text">準備中...</p>
+            <p id="sub-message">困ったら、この通りに進めるだけ</p>
+        </div>
+        <button class="next-btn" onclick="nextTopic()">次の目安を表示する</button>
+        
+        <div class="back-area">
+            <button class="back-btn" onclick="goBack()">設定に戻る</button>
+        </div>
     </div>
+</div>
 
-    <button class="next-btn" onclick="nextTopic()">次の話題</button>
-
-    <p class="note">
-      ・音は出ません<br>
-      ・操作は進行役だけでOK
-    </p>
-
-  </div>
-</main>
-
-<footer class="footer">
-  <p>© EN-KAI</p>
-  <p>
-    連絡先：
-    <a href="https://x.com/dcylko" target="_blank">X @dcylko</a>
-  </p>
-  <p class="footer-links">
-    <a href="terms.html">利用規約</a> |
-    <a href="privacy.html">プライバシーポリシー</a> |
-    <a href="ads.html">広告について</a>
-  </p>
+<footer>
+    <p>連絡先: <a href="https://x.com/dcylko" target="_blank">Xアカウント</a></p>
 </footer>
 
 <script src="script.js"></script>

@@ -1,121 +1,176 @@
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-  font-family: system-ui, sans-serif;
+/* 基本設定 */
+body {
+    font-family: 'M PLUS Rounded 1c', sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    margin: 0;
+    background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%);
+    color: #444;
+    transition: all 0.3s ease;
 }
 
-body {
-  background: #ffffff;
-  color: #111;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
+.container {
+    text-align: center;
+    background: rgba(255, 255, 255, 0.95);
+    padding: 2.5rem 1.5rem;
+    border-radius: 30px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.05);
+    width: 90%;
+    max-width: 400px;
+    min-height: 500px;
+    position: relative;
+}
+
+/* 画面切り替えアニメーション */
+.screen {
+    display: none;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: all 0.4s ease;
+}
+.screen.active {
+    display: block;
+    opacity: 1;
+    transform: translateY(0);
 }
 
 /* ヘッダー */
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 14px 24px;
-  border-bottom: 1px solid #e5e7eb;
+header {
+    position: fixed;
+    top: 0;
+    width: 100%;
+    height: 60px;
+    background: #fff;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 1rem;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    z-index: 10;
+}
+header svg {
+    cursor: pointer;
+}
+.menu-btn {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+}
+#header-menu {
+    position: absolute;
+    top: 60px;
+    right: 1rem;
+    background: #fff;
+    border: 1px solid #eee;
+    border-radius: 10px;
+    padding: 10px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    transition: 0.3s;
+}
+#header-menu.menu-hidden {
+    display: none;
+}
+#header-menu ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+#header-menu li {
+    margin: 8px 0;
+}
+#header-menu a {
+    text-decoration: none;
+    color: #50C878;
+    font-weight: bold;
 }
 
-.logo-area {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  text-decoration: none;
-  color: #111;
-}
+/* タイトルとキャッチコピー */
+.main-title { font-size: 1.6rem; color: #2c3e50; margin-bottom: 5px; }
+.catchphrase span { background: linear-gradient(transparent 60%, #ffeaa7 60%); font-weight: bold; padding: 0 5px; }
+.intro-text { font-size: 0.85rem; line-height: 1.6; color: #666; margin: 1.2rem 0; }
 
-.logo-svg {
-  height: 36px;
+/* モード選択 */
+.mode-selector { margin: 1.5rem 0; text-align: left; }
+.mode-option { margin-bottom: 10px; }
+.mode-option input { display: none; }
+.mode-option label {
+    display: block;
+    padding: 14px;
+    border: 2px solid #eee;
+    border-radius: 15px;
+    cursor: pointer;
+    transition: 0.3s;
+    font-size: 0.95rem;
 }
-
-.logo-sub {
-  font-size: 12px;
-  color: #555;
-}
-
-.nav a {
-  text-decoration: none;
-  font-size: 14px;
-  color: #111;
-}
-
-/* メイン */
-main {
-  flex: 1;
-  display: flex;
-  justify-content: center;
-  padding: 40px 16px;
-}
-
-.home-container,
-.creator-container {
-  max-width: 720px;
-  width: 100%;
-  text-align: center;
-}
-
-h1 {
-  margin-bottom: 20px;
-}
-
-.lead {
-  margin-bottom: 24px;
-  line-height: 1.8;
-  color: #444;
+.mode-option input:checked + label {
+    border-color: #50C878;
+    background-color: #f0fff4;
+    transform: translateX(5px);
 }
 
 /* テーマボタン */
-.mode-select {
-  display: flex;
-  justify-content: center;
-  gap: 12px;
-  margin-bottom: 24px;
+.theme-selector { margin-bottom: 20px; }
+.theme-btn {
+    padding: 8px 16px;
+    margin: 0 4px;
+    border: 2px solid #50C878;
+    background-color: #fff;
+    color: #50C878;
+    cursor: pointer;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+.theme-btn.selected {
+    background-color: #50C878;
+    color: #fff;
 }
 
-.mode-btn {
-  width: 160px;
-  padding: 12px;
-  border: 1px solid #ccc;
-  background: #f9fafb;
-  cursor: pointer;
+/* メインボタン */
+.start-btn, .next-btn {
+    width: 100%;
+    padding: 18px;
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: white;
+    background: linear-gradient(to right, #50C878, #45b36b);
+    border: none;
+    border-radius: 18px;
+    box-shadow: 0 5px 15px rgba(80, 200, 120, 0.3);
+    cursor: pointer;
 }
 
-.mode-btn.active {
-  background: #111;
-  color: #fff;
-}
+/* 進行画面テキスト */
+#display-area { margin: 50px 0; min-height: 120px; }
+#topic-text { font-size: 1.4rem; font-weight: bold; line-height: 1.5; }
 
-/* 話題 */
-.topic-area {
-  min-height: 2em;
-  font-size: 18px;
-  margin-bottom: 20px;
-}
-
-/* ボタン */
-.next-btn,
-.home-btn {
-  padding: 10px 16px;
-  border: 1px solid #ccc;
-  background: #f3f4f6;
-  text-decoration: none;
-  color: #111;
+/* 設定に戻るボタン */
+.back-area { margin-top: 80px; }
+.back-btn {
+    background: none;
+    color: #bbb;
+    border: none;
+    text-decoration: underline;
+    cursor: pointer;
+    font-size: 0.8rem;
 }
 
 /* フッター */
-.footer {
-  border-top: 1px solid #e5e7eb;
-  text-align: center;
-  font-size: 12px;
-  padding: 16px;
+footer {
+    margin-top: 20px;
+    text-align: center;
+    font-size: 0.75rem;
+    color: #888;
 }
 
-.footer a {
-  color: #111;
+/* bodyテーマ */
+body[data-theme="light"] {
+    background-color: #ffffff;
+    color: #333333;
+}
+body[data-theme="dark"] {
+    background-color: #1c1c1c;
+    color: #ffffff;
 }

@@ -1,37 +1,48 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <title>利用規約｜EN-KAI</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>利用規約 | EN-KAI</title>
+    <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<header class="header">
-  <a href="index.html" class="logo-area">
-    <span class="logo-sub">EN-KAI</span>
-  </a>
-  <nav class="nav">
-    <a href="index.html">ホーム</a>
-  </nav>
+<header>
+    <a href="index.html" class="logo-link">
+        <svg width="40" height="40" viewBox="0 0 100 100">
+            <circle cx="50" cy="50" r="45" stroke="#50C878" stroke-width="8" fill="#fff"/>
+            <text x="50%" y="55%" text-anchor="middle" font-size="40" fill="#50C878" font-family="M PLUS Rounded 1c">EN</text>
+        </svg>
+        <span>EN-KAI</span>
+    </a>
+    <button class="menu-btn" onclick="toggleMenu()">☰ メニュー</button>
+    <nav id="header-menu" class="menu-hidden">
+        <ul>
+            <li><a href="index.html">ホーム</a></li>
+            <li><a href="creator.html">プロフィール</a></li>
+            <li><a href="ads.html">広告</a></li>
+            <li><a href="terms.html">利用規約</a></li>
+            <li><a href="privacy.html">プライバシーポリシー</a></li>
+        </ul>
+    </nav>
 </header>
 
-<main>
-  <div class="creator-container">
+<main class="container">
     <h1>利用規約</h1>
-    <p>
-      本サービスは、話題提供を目的とした補助ツールです。<br>
-      利用によって生じた問題について、制作者は責任を負いません。
-    </p>
-  </div>
+    <p>EN-KAIのサービス利用規約です。ここに文章を追加してください。</p>
+
+    <div class="back-home">
+        <a href="index.html" class="start-btn">ホームに戻る</a>
+    </div>
 </main>
 
-<footer class="footer">
-  <p>© EN-KAI</p>
-  <p><a href="https://x.com/dcylko" target="_blank">X @cossrin</a></p>
+<footer>
+    <p>連絡先: <a href="https://x.com/dcylko" target="_blank">Xアカウント</a></p>
 </footer>
 
+<script src="script.js"></script>
 </body>
 </html>
 
