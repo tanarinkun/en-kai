@@ -1,48 +1,31 @@
+<!-- 例: ads.html -->
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>広告 | EN-KAI</title>
-    <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>広告 - EN-KAI</title>
+<link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
-
 <header>
-    <a href="index.html" class="logo-link">
-        <svg width="40" height="40" viewBox="0 0 100 100">
-            <circle cx="50" cy="50" r="45" stroke="#50C878" stroke-width="8" fill="#fff"/>
-            <text x="50%" y="55%" text-anchor="middle" font-size="40" fill="#50C878" font-family="M PLUS Rounded 1c">EN</text>
+    <a href="index.html">
+        <svg viewBox="0 0 100 100">
+            <circle cx="50" cy="50" r="45" fill="#50C878" />
+            <text x="50%" y="55%" text-anchor="middle" fill="#fff" font-size="40" font-family="M PLUS Rounded 1c" dy=".3em">E</text>
         </svg>
-        <span>EN-KAI</span>
     </a>
-    <button class="menu-btn" onclick="toggleMenu()">☰ メニュー</button>
-    <nav id="header-menu" class="menu-hidden">
-        <ul>
-            <li><a href="index.html">ホーム</a></li>
-            <li><a href="creator.html">プロフィール</a></li>
-            <li><a href="ads.html">広告</a></li>
-            <li><a href="terms.html">利用規約</a></li>
-            <li><a href="privacy.html">プライバシーポリシー</a></li>
-        </ul>
-    </nav>
+    <button class="menu-btn" onclick="window.location.href='index.html'">ホームに戻る</button>
 </header>
 
-<main class="container">
-    <h1>広告</h1>
-    <p>ここにGoogle AdSenseやその他の広告を配置できます。</p>
-    <p>※練習段階では広告のプレースホルダーを使用</p>
-
-    <div class="back-home">
-        <a href="index.html" class="start-btn">ホームに戻る</a>
-    </div>
-</main>
+<div class="container">
+    <h2>広告・利用規約・プライバシーポリシー</h2>
+    <p>広告や利用規約に関する情報をここに掲載します。</p>
+</div>
 
 <footer>
-    <p>連絡先: <a href="https://x.com/dcylko" target="_blank">Xアカウント</a></p>
+    EN-KAI © 2025 | <a href="https://x.com/dcylko" target="_blank">連絡先</a>
 </footer>
-
-<script src="script.js"></script>
 </body>
 </html>

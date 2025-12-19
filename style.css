@@ -1,176 +1,157 @@
-/* 基本設定 */
+:root {
+    --primary: #50C878;
+    --primary-light: #e0f7e6;
+    --bg: #f8fafc;
+    --card-bg: #ffffff;
+    --text-main: #1e293b;
+    --text-sub: #64748b;
+    --radius: 20px;
+    --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+}
+
+* { box-sizing: border-box; }
+
 body {
-    font-family: 'M PLUS Rounded 1c', sans-serif;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 100vh;
+    font-family: 'Noto Sans JP', sans-serif;
+    background: var(--bg);
+    color: var(--text-main);
     margin: 0;
-    background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%);
-    color: #444;
-    transition: all 0.3s ease;
+    line-height: 1.6;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
 }
 
-.container {
-    text-align: center;
-    background: rgba(255, 255, 255, 0.95);
-    padding: 2.5rem 1.5rem;
-    border-radius: 30px;
-    box-shadow: 0 20px 40px rgba(0,0,0,0.05);
-    width: 90%;
-    max-width: 400px;
-    min-height: 500px;
-    position: relative;
-}
-
-/* 画面切り替えアニメーション */
-.screen {
-    display: none;
-    opacity: 0;
-    transform: translateY(10px);
-    transition: all 0.4s ease;
-}
-.screen.active {
-    display: block;
-    opacity: 1;
-    transform: translateY(0);
-}
-
-/* ヘッダー */
-header {
-    position: fixed;
+/* --- ヘッダー（全ページ共通） --- */
+.glass-header {
+    position: sticky;
     top: 0;
-    width: 100%;
-    height: 60px;
-    background: #fff;
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(10px);
+    z-index: 100;
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+}
+
+.header-inner {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 12px 20px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 0 1rem;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-    z-index: 10;
 }
-header svg {
-    cursor: pointer;
-}
-.menu-btn {
-    background: none;
-    border: none;
-    font-size: 1.5rem;
-    cursor: pointer;
-}
-#header-menu {
-    position: absolute;
-    top: 60px;
-    right: 1rem;
-    background: #fff;
-    border: 1px solid #eee;
-    border-radius: 10px;
-    padding: 10px;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    transition: 0.3s;
-}
-#header-menu.menu-hidden {
-    display: none;
-}
-#header-menu ul {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-}
-#header-menu li {
-    margin: 8px 0;
-}
-#header-menu a {
+
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
     text-decoration: none;
-    color: #50C878;
-    font-weight: bold;
+    font-weight: 700;
+    color: var(--text-main);
 }
 
-/* タイトルとキャッチコピー */
-.main-title { font-size: 1.6rem; color: #2c3e50; margin-bottom: 5px; }
-.catchphrase span { background: linear-gradient(transparent 60%, #ffeaa7 60%); font-weight: bold; padding: 0 5px; }
-.intro-text { font-size: 0.85rem; line-height: 1.6; color: #666; margin: 1.2rem 0; }
-
-/* モード選択 */
-.mode-selector { margin: 1.5rem 0; text-align: left; }
-.mode-option { margin-bottom: 10px; }
-.mode-option input { display: none; }
-.mode-option label {
-    display: block;
-    padding: 14px;
-    border: 2px solid #eee;
-    border-radius: 15px;
-    cursor: pointer;
-    transition: 0.3s;
-    font-size: 0.95rem;
-}
-.mode-option input:checked + label {
-    border-color: #50C878;
-    background-color: #f0fff4;
-    transform: translateX(5px);
-}
-
-/* テーマボタン */
-.theme-selector { margin-bottom: 20px; }
-.theme-btn {
-    padding: 8px 16px;
-    margin: 0 4px;
-    border: 2px solid #50C878;
-    background-color: #fff;
-    color: #50C878;
-    cursor: pointer;
-    border-radius: 6px;
-    transition: all 0.2s ease;
-}
-.theme-btn.selected {
-    background-color: #50C878;
-    color: #fff;
-}
-
-/* メインボタン */
-.start-btn, .next-btn {
-    width: 100%;
-    padding: 18px;
-    font-size: 1.1rem;
-    font-weight: bold;
+.logo-icon {
+    width: 32px;
+    height: 32px;
+    background: var(--primary);
     color: white;
-    background: linear-gradient(to right, #50C878, #45b36b);
-    border: none;
-    border-radius: 18px;
-    box-shadow: 0 5px 15px rgba(80, 200, 120, 0.3);
+    border-radius: 8px;
+    display: grid;
+    place-items: center;
+}
+
+/* --- メインコンテナ --- */
+.container {
+    max-width: 500px;
+    margin: 0 auto;
+    padding: 20px;
+    flex: 1;
+    width: 100%;
+}
+
+.card {
+    background: var(--card-bg);
+    border-radius: var(--radius);
+    padding: 24px;
+    box-shadow: var(--shadow);
+    margin-bottom: 20px;
+    animation: fadeIn 0.5s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* --- シーン選択ボックス（修正版） --- */
+.mode-selector {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin: 20px 0;
+}
+
+.mode-option { position: relative; }
+.mode-option input { display: none; }
+
+.mode-label {
+    display: flex;
+    align-items: center;
+    padding: 18px;
+    background: #fff;
+    border: 2px solid #f1f5f9;
+    border-radius: 16px;
     cursor: pointer;
+    transition: 0.2s;
 }
 
-/* 進行画面テキスト */
-#display-area { margin: 50px 0; min-height: 120px; }
-#topic-text { font-size: 1.4rem; font-weight: bold; line-height: 1.5; }
+.mode-label .icon { font-size: 24px; margin-right: 15px; }
+.mode-label .text-group { display: flex; flex-direction: column; }
+.mode-label .title { font-weight: bold; font-size: 1rem; }
+.mode-label .desc { font-size: 0.8rem; color: var(--text-sub); }
 
-/* 設定に戻るボタン */
-.back-area { margin-top: 80px; }
-.back-btn {
-    background: none;
-    color: #bbb;
+input[type="radio"]:checked + .mode-label {
+    border-color: var(--primary);
+    background: var(--primary-light);
+}
+
+/* --- ボタン --- */
+.btn-primary {
+    width: 100%;
+    background: var(--primary);
+    color: white;
     border: none;
-    text-decoration: underline;
+    padding: 16px;
+    border-radius: 16px;
+    font-size: 1rem;
+    font-weight: 700;
     cursor: pointer;
-    font-size: 0.8rem;
+    box-shadow: 0 4px 12px rgba(80, 200, 120, 0.3);
 }
 
-/* フッター */
-footer {
-    margin-top: 20px;
-    text-align: center;
-    font-size: 0.75rem;
-    color: #888;
+/* --- サイドメニュー --- */
+.menu-trigger {
+    background: none; border: 1px solid #eee; padding: 8px 12px;
+    border-radius: 8px; font-weight: bold; color: var(--primary); cursor: pointer;
 }
 
-/* bodyテーマ */
-body[data-theme="light"] {
-    background-color: #ffffff;
-    color: #333333;
+.side-menu {
+    position: fixed; right: -280px; top: 0; width: 280px; height: 100%;
+    background: white; z-index: 1001; transition: 0.3s;
+    box-shadow: -10px 0 30px rgba(0,0,0,0.1);
 }
-body[data-theme="dark"] {
-    background-color: #1c1c1c;
-    color: #ffffff;
+.side-menu.active { right: 0; }
+.menu-links { padding: 20px; display: flex; flex-direction: column; gap: 10px; }
+.side-menu a {
+    text-decoration: none; color: var(--text-main); padding: 15px;
+    border-radius: 10px; transition: 0.2s;
 }
+.side-menu a:hover { background: var(--primary-light); }
+
+.overlay {
+    display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 1000;
+}
+.overlay.active { display: block; }
+
+/* --- フッター --- */
+footer { text-align: center; padding: 30px; font-size: 0.8rem; color: var(--text-sub); }

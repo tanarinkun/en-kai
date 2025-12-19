@@ -2,79 +2,88 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>場の進行サポート</title>
-    <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>EN-KAI - 進行サポート</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<header>
-    <a href="index.html" class="logo-link">
-        <svg width="40" height="40" viewBox="0 0 100 100">
-            <circle cx="50" cy="50" r="45" stroke="#50C878" stroke-width="8" fill="#fff"/>
-            <text x="50%" y="55%" text-anchor="middle" font-size="40" fill="#50C878" font-family="M PLUS Rounded 1c">EN</text>
-        </svg>
-        <span>EN-KAI</span>
-    </a>
-    <button class="menu-btn" onclick="toggleMenu()">☰ メニュー</button>
-    <nav id="header-menu" class="menu-hidden">
-        <ul>
-            <li><a href="index.html">ホーム</a></li>
-            <li><a href="creator.html">プロフィール</a></li>
-            <li><a href="ads.html">広告</a></li>
-            <li><a href="terms.html">利用規約</a></li>
-            <li><a href="privacy.html">プライバシーポリシー</a></li>
-        </ul>
-    </nav>
+<div id="overlay" class="overlay" onclick="toggleMenu()"></div>
+<nav id="side-menu" class="side-menu">
+    <div class="menu-links" style="margin-top:50px;">
+        <a href="index.html">🏠 ホーム</a>
+        <a href="profile.html">👤 プロフィール</a>
+        <a href="ads.html">📜 利用規約・広告</a>
+    </div>
+</nav>
+
+<header class="glass-header">
+    <div class="header-inner">
+        <a href="index.html" class="logo">
+            <div class="logo-icon">E</div>
+            <span>EN-KAI</span>
+        </a>
+        <button class="menu-trigger" onclick="toggleMenu()">MENU</button>
+    </div>
 </header>
 
-<div class="container">
-    <div id="start-screen" class="screen active">
-        <h1 class="main-title">場の進行サポート</h1>
-        <p class="catchphrase"><span>無理に盛り上げなくて大丈夫です</span></p>
-        
-        <p class="intro-text">
-            飲み会・懇親会・レクリエーションなど、<br>
-            人が集まる場の進行を静かに手助けします。
-        </p>
-
-        <div class="mode-selector">
-            <div class="mode-option">
-                <input type="radio" name="mode" value="casual" id="m1" checked>
-                <label for="m1">🍃 カジュアル（飲み会向け）</label>
+<main class="container">
+    <div id="start-screen" class="screen">
+        <div class="card">
+            <h2 style="margin-top:0">シーンを選択</h2>
+            <div class="mode-selector">
+                <div class="mode-option">
+                    <input type="radio" name="mode" value="casual" id="m1" checked>
+                    <label for="m1" class="mode-label">
+                        <span class="icon">🍺</span>
+                        <div class="text-group">
+                            <span class="title">カジュアル</span>
+                            <span class="desc">飲み会や友人同士の集まりに</span>
+                        </div>
+                    </label>
+                </div>
+                <div class="mode-option">
+                    <input type="radio" name="mode" value="business" id="m2">
+                    <label for="m2" class="mode-label">
+                        <span class="icon">💼</span>
+                        <div class="text-group">
+                            <span class="title">ビジネス</span>
+                            <span class="desc">社内懇親会やアイスブレイクに</span>
+                        </div>
+                    </label>
+                </div>
+                <div class="mode-option">
+                    <input type="radio" name="mode" value="rec" id="m3">
+                    <label for="m3" class="mode-label">
+                        <span class="icon">🎮</span>
+                        <div class="text-group">
+                            <span class="title">レクリエーション</span>
+                            <span class="desc">全員で体や心を動かす時に</span>
+                        </div>
+                    </label>
+                </div>
             </div>
-            <div class="mode-option">
-                <input type="radio" name="mode" value="business" id="m2">
-                <label for="m2">👔 ビジネス（懇親会・研修）</label>
-            </div>
-            <div class="mode-option">
-                <input type="radio" name="mode" value="rec" id="m3">
-                <label for="m3">🎈 レクリエーション</label>
-            </div>
+            <button class="btn-primary" onclick="onStartClicked()">開始する</button>
         </div>
-        
-        <button class="start-btn" onclick="onStartClicked()">▶ 今すぐ始める</button>
-        <p class="footer-note">※ 操作するのは進行役の方だけで大丈夫です</p>
     </div>
 
-    <div id="main-screen" class="screen">
-        <div id="display-area">
-            <p id="topic-text">準備中...</p>
-            <p id="sub-message">困ったら、この通りに進めるだけ</p>
+    <div id="main-screen" class="screen" style="display:none">
+        <div class="card" style="text-align:center">
+            <div id="timer-display" style="font-size:3rem; font-weight:700">01:00</div>
+            <div style="display:flex; gap:10px; margin-top:10px">
+                <button id="timer-start-btn" class="btn-primary" style="flex:2" onclick="toggleTimer()">スタート</button>
+                <button class="btn-primary" style="flex:1; background:#eee; color:#333" onclick="resetTimer()">リセット</button>
+            </div>
         </div>
-        <button class="next-btn" onclick="nextTopic()">次の目安を表示する</button>
-        
-        <div class="back-area">
-            <button class="back-btn" onclick="goBack()">設定に戻る</button>
+        <div class="card" style="text-align:center">
+            <div id="topic-text" style="font-size:1.2rem; font-weight:bold">お題を準備中...</div>
         </div>
+        <button class="btn-primary" onclick="nextTopic()">次のお題へ</button>
     </div>
-</div>
+</main>
 
-<footer>
-    <p>連絡先: <a href="https://x.com/dcylko" target="_blank">Xアカウント</a></p>
-</footer>
-
+<footer>EN-KAI © 2025</footer>
 <script src="script.js"></script>
 </body>
 </html>

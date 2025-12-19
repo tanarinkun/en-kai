@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>プロフィール - EN-KAI</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div id="overlay" class="overlay" onclick="toggleMenu()"></div>
+<nav id="side-menu" class="side-menu">
+    <div class="menu-links" style="margin-top:50px;">
+        <a href="index.html">🏠 ホーム</a>
+        <a href="profile.html">👤 プロフィール</a>
+        <a href="ads.html">📜 利用規約・広告</a>
+    </div>
+</nav>
+
+<header class="glass-header">
+    <div class="header-inner">
+        <a href="index.html" class="logo">
+            <div class="logo-icon">E</div>
+            <span>EN-KAI</span>
+        </a>
+        <button class="menu-trigger" onclick="toggleMenu()">MENU</button>
+    </div>
+</header>
+
+<main class="container">
+    <div class="card" style="text-align:center">
+        <div style="width:80px; height:80px; background:var(--primary-light); border-radius:50%; margin:0 auto 15px; display:grid; place-items:center; font-size:2rem">👤</div>
+        <h2 style="margin:0">たなりんくん</h2>
+        <p style="color:var(--text-sub)">EN-KAI 制作者</p>
+    </div>
+
+    <div class="card">
+        <h3 style="margin-top:0">基本情報</h3>
+        <p><strong>生年月日:</strong> 2007年2月3日</p>
+        <p><strong>活動内容:</strong> 場の進行をスマートにサポートするWebツールの開発。</p>
+    </div>
+
+    <button class="btn-primary" onclick="location.href='index.html'">ホームに戻る</button>
+</main>
+
+<footer>EN-KAI © 2025</footer>
+<script>
+    function toggleMenu() {
+        document.getElementById('side-menu').classList.toggle('active');
+        document.getElementById('overlay').classList.toggle('active');
+    }
+</script>
+</body>
+</html>
