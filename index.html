@@ -7,21 +7,42 @@
     
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#50C878">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, addDoc, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCdFdzVaqfdHPEQH-iS-ufcV629EMt6k6g",
+            authDomain: "en-ka1.firebaseapp.com",
+            projectId: "en-ka1",
+            storageBucket: "en-ka1.firebasestorage.app",
+            messagingSenderId: "390713740088",
+            appId: "1:390713740088:web:139bde844b5bedb1218fcd",
+            measurementId: "G-TS8D2JTNQY"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        window.db = db;
+        window.dbMethods = { addDoc, collection, getDocs, query, orderBy };
+    </script>
 </head>
 <body>
+
+<div id="toast-notification" class="toast-banner">✅ 送信が完了しました！</div>
 
 <div id="overlay" class="overlay" onclick="toggleMenu()"></div>
 
 <nav id="side-menu" class="side-menu">
     <div class="menu-links" style="margin-top:50px;">
         <a href="index.html">🏠 ホーム</a>
+        <a href="#" onclick="showReport(); return false;">📊 EN-KAIレポート</a>
         <a href="guide.html">📖 使い方</a>
         <a href="profile.html">👤 プロフィール</a>
-        <a href="ads.html">📜 利用規約・広告</a>
     </div>
 </nav>
 
@@ -41,13 +62,9 @@
         <div class="card" style="text-align:center; padding: 4rem 1.5rem;">
             <div class="logo-large" style="font-size: 5rem; margin-bottom: 1.5rem;">🎉</div>
             <h1 style="margin:0; font-size: 2rem;">EN-KAI</h1>
-            <p style="color:var(--text-sub); margin-bottom: 2.5rem; font-size: 1.1rem;">
-                沈黙を、笑顔に変える。<br>
-                スマートな進行サポートツール。
-            </p>
-            <button class="btn-primary" onclick="showScreen('start-screen')" style="padding: 20px; font-size: 1.2rem;">さっそく始める</button>
-            
-            <button class="btn-text" onclick="location.href='guide.html'" style="margin-top:1.5rem; color:var(--primary); font-weight:bold; font-size:1rem;">
+            <p style="color:var(--text-sub); margin-bottom: 2.5rem;">沈黙を、笑顔に変える。</p>
+            <button class="btn-primary" onclick="showScreen('start-screen')">さっそく始める</button>
+            <button class="btn-text" onclick="location.href='guide.html'" style="margin-top:1.5rem; color:var(--primary); font-weight:bold;">
                 使い方はこちら ≫
             </button>
         </div>
@@ -56,85 +73,90 @@
     <section id="start-screen" class="screen" style="display:none">
         <div class="card">
             <h2 style="margin-top:0">シーンを選択</h2>
-            
             <div class="mode-selector">
                 <div class="mode-option">
                     <input type="radio" name="mode" value="casual" id="m1" checked>
                     <label for="m1" class="mode-label">
                         <span class="icon">🍺</span>
-                        <div class="text-group">
-                            <span class="title">カジュアル</span>
-                            <span class="desc">飲み会や友人同士に</span>
-                        </div>
+                        <div class="text-group"><span class="title">カジュアル</span><span class="desc">飲み会や友人に</span></div>
                     </label>
                 </div>
                 <div class="mode-option">
                     <input type="radio" name="mode" value="business" id="m2">
                     <label for="m2" class="mode-label">
                         <span class="icon">💼</span>
-                        <div class="text-group">
-                            <span class="title">ビジネス</span>
-                            <span class="desc">社内懇親会や会議に</span>
-                        </div>
-                    </label>
-                </div>
-                <div class="mode-option">
-                    <input type="radio" name="mode" value="rec" id="m3">
-                    <label for="m3" class="mode-label">
-                        <span class="icon">🎮</span>
-                        <div class="text-group">
-                            <span class="title">レクリエーション</span>
-                            <span class="desc">体や心を動かす時に</span>
-                        </div>
+                        <div class="text-group"><span class="title">ビジネス</span><span class="desc">社内懇親会に</span></div>
                     </label>
                 </div>
             </div>
-
             <button class="btn-primary" onclick="onStartClicked()">このシーンで開始</button>
-            
-            <div style="text-align:center; margin-top:20px;">
-                <a href="guide.html" style="color:var(--text-sub); text-decoration:none; font-size:0.9rem;">❓ 使い方はこちら</a>
-            </div>
-            
-            <button class="btn-text" onclick="showScreen('welcome-screen')" style="width:100%; margin-top:15px; font-weight:bold;">◀ 戻る</button>
+            <button class="btn-text" onclick="showScreen('welcome-screen')" style="width:100%; margin-top:15px;">戻る</button>
         </div>
     </section>
 
     <section id="main-screen" class="screen" style="display:none">
         <div class="card" style="text-align:center">
             <div id="timer-display">01:00</div>
-            <div class="timer-bar-bg">
-                <div id="timer-bar-fill"></div>
-            </div>
+            <div class="timer-bar-bg"><div id="timer-bar-fill"></div></div>
             <div style="display:flex; gap:10px;">
                 <button id="timer-start-btn" class="btn-primary" style="flex:2" onclick="toggleTimer()">スタート</button>
                 <button class="btn-secondary" style="flex:1" onclick="resetTimer()">リセット</button>
             </div>
         </div>
-
         <div class="card topic-card">
             <div class="topic-label">TOPIC</div>
-            <div id="topic-text">お題を準備中...</div>
+            <div id="topic-text">準備中...</div>
         </div>
-
         <button class="btn-primary" onclick="nextTopic()" style="padding:20px; font-size:1.1rem;">次のお題へ ≫</button>
-        
-        <div id="ad-container" class="ad-placeholder">
-            ADVERTISEMENT
-        </div>
-
-        <button class="btn-text" onclick="location.reload()" style="width:100%; margin-top:20px;">シーン選択に戻る</button>
+        <button class="btn-secondary" onclick="finishSession()" style="margin-top:10px;">宴会を終了する</button>
     </section>
+
+    <section id="finish-screen" class="screen" style="display:none">
+        <div class="card" style="text-align:center">
+            <h2>お疲れ様でした！</h2>
+            <p>今の盛り上がりをみんなと共有！</p>
+            <div class="rating-input" style="font-size: 2.5rem; margin: 20px 0;">
+                <span onclick="setRating(1)" class="star">🔥</span>
+                <span onclick="setRating(2)" class="star">🔥</span>
+                <span onclick="setRating(3)" class="star">🔥</span>
+                <span onclick="setRating(4)" class="star">🔥</span>
+                <span onclick="setRating(5)" class="star">🔥</span>
+            </div>
+            <textarea id="session-memo" placeholder="みんなに一言どうぞ！"></textarea>
+            <button id="save-btn" class="btn-primary" style="margin-top:20px;" onclick="saveSessionRecord()">クラウドに保存して終了</button>
+        </div>
+    </section>
+
+    <section id="finish-thanks-screen" class="screen" style="display:none">
+        <div class="card" style="text-align:center; padding: 3rem 1.5rem;">
+            <div style="font-size: 5rem; margin-bottom: 1rem;">🙌</div>
+            <h2>ありがとうございます！</h2>
+            <p style="color:var(--text-sub); line-height: 1.6;">
+                あなたの感想をクラウドに届けました。<br>
+                素敵な宴会のお手伝いができて光栄です！
+            </p>
+            <div style="margin-top: 2rem; display: flex; flex-direction: column; gap: 10px;">
+                <button class="btn-primary" onclick="showReport()">EN-KAIレポートを見る</button>
+                <button class="btn-secondary" onclick="showScreen('welcome-screen')">ホームに戻る</button>
+            </div>
+        </div>
+    </section>
+
+    <section id="report-screen" class="screen" style="display:none">
+        <div class="card">
+            <h2 style="margin-top:0">EN-KAIレポート</h2>
+            <div id="stats-summary" style="background:var(--primary-light); padding:15px; border-radius:12px; margin-bottom:20px;">
+                読み込み中...
+            </div>
+            <h3>最近の感想メモ</h3>
+            <div id="memo-list" style="max-height: 400px; overflow-y: auto;"></div>
+            <button class="btn-primary" style="margin-top:20px;" onclick="showScreen('welcome-screen')">ホームへ戻る</button>
+        </div>
+    </section>
+
 </main>
 
 <footer>EN-KAI © 2025</footer>
-
 <script src="script.js"></script>
-<script>
-    // Service Workerの登録
-    if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('sw.js').catch(() => {});
-    }
-</script>
 </body>
 </html>
