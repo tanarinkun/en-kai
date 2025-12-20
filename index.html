@@ -2,17 +2,24 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>EN-KAI - 進行サポート</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>EN-KAI - 場の進行サポート</title>
+    
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#50C878">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
 <div id="overlay" class="overlay" onclick="toggleMenu()"></div>
+
 <nav id="side-menu" class="side-menu">
     <div class="menu-links" style="margin-top:50px;">
         <a href="index.html">🏠 ホーム</a>
+        <a href="guide.html">📖 使い方</a>
         <a href="profile.html">👤 プロフィール</a>
         <a href="ads.html">📜 利用規約・広告</a>
     </div>
@@ -29,9 +36,27 @@
 </header>
 
 <main class="container">
-    <div id="start-screen" class="screen">
+    
+    <section id="welcome-screen" class="screen">
+        <div class="card" style="text-align:center; padding: 4rem 1.5rem;">
+            <div class="logo-large" style="font-size: 5rem; margin-bottom: 1.5rem;">🎉</div>
+            <h1 style="margin:0; font-size: 2rem;">EN-KAI</h1>
+            <p style="color:var(--text-sub); margin-bottom: 2.5rem; font-size: 1.1rem;">
+                沈黙を、笑顔に変える。<br>
+                スマートな進行サポートツール。
+            </p>
+            <button class="btn-primary" onclick="showScreen('start-screen')" style="padding: 20px; font-size: 1.2rem;">さっそく始める</button>
+            
+            <button class="btn-text" onclick="location.href='guide.html'" style="margin-top:1.5rem; color:var(--primary); font-weight:bold; font-size:1rem;">
+                使い方はこちら ≫
+            </button>
+        </div>
+    </section>
+
+    <section id="start-screen" class="screen" style="display:none">
         <div class="card">
             <h2 style="margin-top:0">シーンを選択</h2>
+            
             <div class="mode-selector">
                 <div class="mode-option">
                     <input type="radio" name="mode" value="casual" id="m1" checked>
@@ -39,7 +64,7 @@
                         <span class="icon">🍺</span>
                         <div class="text-group">
                             <span class="title">カジュアル</span>
-                            <span class="desc">飲み会や友人同士の集まりに</span>
+                            <span class="desc">飲み会や友人同士に</span>
                         </div>
                     </label>
                 </div>
@@ -49,7 +74,7 @@
                         <span class="icon">💼</span>
                         <div class="text-group">
                             <span class="title">ビジネス</span>
-                            <span class="desc">社内懇親会やアイスブレイクに</span>
+                            <span class="desc">社内懇親会や会議に</span>
                         </div>
                     </label>
                 </div>
@@ -59,31 +84,57 @@
                         <span class="icon">🎮</span>
                         <div class="text-group">
                             <span class="title">レクリエーション</span>
-                            <span class="desc">全員で体や心を動かす時に</span>
+                            <span class="desc">体や心を動かす時に</span>
                         </div>
                     </label>
                 </div>
             </div>
-            <button class="btn-primary" onclick="onStartClicked()">開始する</button>
-        </div>
-    </div>
 
-    <div id="main-screen" class="screen" style="display:none">
+            <button class="btn-primary" onclick="onStartClicked()">このシーンで開始</button>
+            
+            <div style="text-align:center; margin-top:20px;">
+                <a href="guide.html" style="color:var(--text-sub); text-decoration:none; font-size:0.9rem;">❓ 使い方はこちら</a>
+            </div>
+            
+            <button class="btn-text" onclick="showScreen('welcome-screen')" style="width:100%; margin-top:15px; font-weight:bold;">◀ 戻る</button>
+        </div>
+    </section>
+
+    <section id="main-screen" class="screen" style="display:none">
         <div class="card" style="text-align:center">
-            <div id="timer-display" style="font-size:3rem; font-weight:700">01:00</div>
-            <div style="display:flex; gap:10px; margin-top:10px">
+            <div id="timer-display">01:00</div>
+            <div class="timer-bar-bg">
+                <div id="timer-bar-fill"></div>
+            </div>
+            <div style="display:flex; gap:10px;">
                 <button id="timer-start-btn" class="btn-primary" style="flex:2" onclick="toggleTimer()">スタート</button>
-                <button class="btn-primary" style="flex:1; background:#eee; color:#333" onclick="resetTimer()">リセット</button>
+                <button class="btn-secondary" style="flex:1" onclick="resetTimer()">リセット</button>
             </div>
         </div>
-        <div class="card" style="text-align:center">
-            <div id="topic-text" style="font-size:1.2rem; font-weight:bold">お題を準備中...</div>
+
+        <div class="card topic-card">
+            <div class="topic-label">TOPIC</div>
+            <div id="topic-text">お題を準備中...</div>
         </div>
-        <button class="btn-primary" onclick="nextTopic()">次のお題へ</button>
-    </div>
+
+        <button class="btn-primary" onclick="nextTopic()" style="padding:20px; font-size:1.1rem;">次のお題へ ≫</button>
+        
+        <div id="ad-container" class="ad-placeholder">
+            ADVERTISEMENT
+        </div>
+
+        <button class="btn-text" onclick="location.reload()" style="width:100%; margin-top:20px;">シーン選択に戻る</button>
+    </section>
 </main>
 
 <footer>EN-KAI © 2025</footer>
+
 <script src="script.js"></script>
+<script>
+    // Service Workerの登録
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('sw.js').catch(() => {});
+    }
+</script>
 </body>
 </html>

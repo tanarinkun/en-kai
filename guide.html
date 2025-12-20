@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>使い方 - EN-KAI</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div id="overlay" class="overlay" onclick="toggleMenu()"></div>
+<nav id="side-menu" class="side-menu">
+    <div class="menu-links" style="margin-top:50px;">
+        <a href="index.html">🏠 ホーム</a>
+        <a href="guide.html">📖 使い方</a>
+        <a href="profile.html">👤 プロフィール</a>
+        <a href="ads.html">📜 利用規約・広告</a>
+    </div>
+</nav>
+
+<header class="glass-header">
+    <div class="header-inner">
+        <a href="index.html" class="logo">
+            <div class="logo-icon">E</div>
+            <span>EN-KAI</span>
+        </a>
+        <button class="menu-trigger" onclick="toggleMenu()">MENU</button>
+    </div>
+</header>
+
+<main class="container">
+    <div class="card">
+        <h2 style="margin-top:0; color:var(--primary);">遊び方ガイド</h2>
+        <div class="step">
+            <p><strong>1. シーンを選ぶ</strong><br>
+            集まりの種類（カジュアル・ビジネス・レク）に合わせてモードを選択し、「開始する」を押します。</p>
+        </div>
+        <div class="step">
+            <p><strong>2. お題に答える</strong><br>
+            表示されたお題について、参加者で話を広げましょう。お題は自動でシャッフルされるので毎回新鮮です！</p>
+        </div>
+        <div class="step">
+            <p><strong>3. タイマーを活用</strong><br>
+            一人あたりの持ち時間を決めたい時はタイマーをスタート。終了すると振動（スマホのみ）でお知らせします。</p>
+        </div>
+        <div class="step">
+            <p><strong>4. 次のお題へ</strong><br>
+            話がひと区切りついたら「次のお題へ」ボタンを押して、どんどん場を盛り上げましょう！</p>
+        </div>
+    </div>
+
+    <button class="btn-primary" onclick="location.href='index.html'">さっそく使ってみる</button>
+</main>
+
+<footer>EN-KAI © 2025</footer>
+
+<script>
+    function toggleMenu() {
+        document.getElementById('side-menu').classList.toggle('active');
+        document.getElementById('overlay').classList.toggle('active');
+    }
+</script>
+</body>
+</html>

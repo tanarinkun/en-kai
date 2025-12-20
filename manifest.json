@@ -1,0 +1,21 @@
+{
+  "name": "EN-KAI",
+  "short_name": "ENKAI",
+  "description": "場の進行をスマートにサポートするツール",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#50C878",
+  "icons": [
+    {
+      "src": "https://via.placeholder.com/192/50C878/ffffff?text=E",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "https://via.placeholder.com/512/50C878/ffffff?text=E",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
