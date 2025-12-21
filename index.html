@@ -27,6 +27,7 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
+        // script.js から呼び出せるように公開
         window.db = db;
         window.dbMethods = { addDoc, collection, getDocs, query, orderBy };
     </script>
@@ -39,7 +40,7 @@
 
 <nav id="side-menu" class="side-menu">
     <div class="menu-links" style="margin-top:50px;">
-        <a href="index.html">🏠 ホーム</a>
+        <a href="#" onclick="showScreen('welcome-screen'); return false;">🏠 ホーム</a>
         <a href="#" onclick="showReport(); return false;">📊 EN-KAIレポート</a>
         <a href="guide.html">📖 使い方</a>
         <a href="profile.html">👤 プロフィール</a>
@@ -132,8 +133,7 @@
             <div style="font-size: 5rem; margin-bottom: 1rem;">🙌</div>
             <h2>ありがとうございます！</h2>
             <p style="color:var(--text-sub); line-height: 1.6;">
-                あなたの感想をクラウドに届けました。<br>
-                素敵な宴会のお手伝いができて光栄です！
+                あなたの感想をクラウドに届けました。<br>素敵な宴会のお手伝いができて光栄です！
             </p>
             <div style="margin-top: 2rem; display: flex; flex-direction: column; gap: 10px;">
                 <button class="btn-primary" onclick="showReport()">EN-KAIレポートを見る</button>
@@ -145,7 +145,7 @@
     <section id="report-screen" class="screen" style="display:none">
         <div class="card">
             <h2 style="margin-top:0">EN-KAIレポート</h2>
-            <div id="stats-summary" style="background:var(--primary-light); padding:15px; border-radius:12px; margin-bottom:20px;">
+            <div id="stats-summary" style="background:var(--primary-light); padding:15px; border-radius:12px; margin-bottom:20px; line-height:1.6;">
                 読み込み中...
             </div>
             <h3>最近の感想メモ</h3>
