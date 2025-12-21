@@ -3,160 +3,140 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>EN-KAI - 場の進行サポート</title>
-    
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#50C878">
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
+    <title>EN-KAI</title>
     <link rel="stylesheet" href="style.css">
-
     <script type="module">
+        /* Firebase設定（省略なし） */
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, addDoc, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
+        import { getFirestore, collection, addDoc, getDocs, query, orderBy, where, limit } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
         const firebaseConfig = {
-            apiKey: "AIzaSyCdFdzVaqfdHPEQH-iS-ufcV629EMt6k6g",
-            authDomain: "en-ka1.firebaseapp.com",
-            projectId: "en-ka1",
-            storageBucket: "en-ka1.firebasestorage.app",
-            messagingSenderId: "390713740088",
-            appId: "1:390713740088:web:139bde844b5bedb1218fcd",
-            measurementId: "G-TS8D2JTNQY"
+            apiKey: "AIzaSyCdFdzVaqfdHPEQH-iS-ufcV629EMt6k6g", authDomain: "en-ka1.firebaseapp.com",
+            projectId: "en-ka1", storageBucket: "en-ka1.firebasestorage.app",
+            messagingSenderId: "390713740088", appId: "1:390713740088:web:139bde844b5bedb1218fcd"
         };
-
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
+        const auth = getAuth(app);
+        const provider = new GoogleAuthProvider();
+        window.db = db; window.auth = auth;
+        window.dbMethods = { addDoc, collection, getDocs, query, orderBy, where, limit };
+        window.authMethods = { signInWithPopup, provider, signOut };
 
-        // script.js から呼び出せるように公開
-        window.db = db;
-        window.dbMethods = { addDoc, collection, getDocs, query, orderBy };
+        onAuthStateChanged(auth, (user) => {
+            const userStatusElements = document.querySelectorAll('.dynamic-user-status');
+            userStatusElements.forEach(el => {
+                el.innerText = user ? user.displayName : "ゲスト";
+            });
+            if (user) {
+                document.getElementById('login-section').style.display = 'none';
+                loadDashboardData();
+            } else {
+                document.getElementById('login-section').style.display = 'block';
+            }
+        });
     </script>
 </head>
 <body>
 
-<div id="toast-notification" class="toast-banner">✅ 送信が完了しました！</div>
+<div id="toast-notification" class="toast-banner">✅ 完了しました</div>
 
 <div id="overlay" class="overlay" onclick="toggleMenu()"></div>
-
 <nav id="side-menu" class="side-menu">
-    <div class="menu-links" style="margin-top:50px;">
-        <a href="#" onclick="showScreen('welcome-screen'); return false;">🏠 ホーム</a>
-        <a href="#" onclick="showReport(); return false;">📊 EN-KAIレポート</a>
+    <div style="padding: 10px; text-align: center; border-bottom: 1px solid var(--card-border);">
+        <div class="dynamic-user-status" style="font-weight: 900;">読み込み中...</div>
+    </div>
+    <div class="menu-links">
+        <a href="index.html">🏠 ホーム</a>
+        <a href="#" onclick="showScreen('start-screen'); return false;">🚀 宴会を開始</a>
+        <a href="#" onclick="showScreen('share-screen'); return false;">💡 お題を共有する</a>
         <a href="guide.html">📖 使い方</a>
-        <a href="profile.html">👤 プロフィール</a>
+        <a href="profile.html">👤 作成者について</a>
+        <a href="#" onclick="showReport(); return false;">📊 自分のレポート</a>
+        <a href="#" onclick="handleLogout(); return false;" style="color:var(--accent-red); margin-top:20px;">🚪 ログアウト</a>
+        <a href="#" onclick="toggleMenu(); return false;">❌ 閉じる</a>
     </div>
 </nav>
 
 <header class="glass-header">
     <div class="header-inner">
-        <a href="index.html" class="logo">
-            <div class="logo-icon">E</div>
-            <span>EN-KAI</span>
-        </a>
-        <button class="menu-trigger" onclick="toggleMenu()">MENU</button>
+        <a href="index.html" class="logo"><div class="logo-icon">E</div><span>EN-KAI</span></a>
+        <div class="header-controls">
+            <button class="mode-toggle-btn" onclick="toggleDarkMode()">🌓</button>
+            <button class="menu-trigger" onclick="toggleMenu()">MENU</button>
+        </div>
     </div>
 </header>
 
 <main class="container">
-    
     <section id="welcome-screen" class="screen">
-        <div class="card" style="text-align:center; padding: 4rem 1.5rem;">
-            <div class="logo-large" style="font-size: 5rem; margin-bottom: 1.5rem;">🎉</div>
-            <h1 style="margin:0; font-size: 2rem;">EN-KAI</h1>
-            <p style="color:var(--text-sub); margin-bottom: 2.5rem;">沈黙を、笑顔に変える。</p>
-            <button class="btn-primary" onclick="showScreen('start-screen')">さっそく始める</button>
-            <button class="btn-text" onclick="location.href='guide.html'" style="margin-top:1.5rem; color:var(--primary); font-weight:bold;">
-                使い方はこちら ≫
-            </button>
+        <div class="card" style="text-align:center; padding: 3rem 1.5rem;">
+            <div style="font-size: 3rem; margin-bottom: 1rem;">🎉</div>
+            <h1 style="font-weight:900;">EN-KAI</h1>
+            <p style="color:var(--text-sub); margin-bottom: 2rem;">沈黙を最高の笑顔へ。</p>
+            <button class="btn-primary" onclick="showScreen('start-screen')">宴会を開始する</button>
+        </div>
+        <div id="login-section" class="card" style="text-align:center; border: 2px dashed var(--primary);">
+            <button class="btn-secondary" onclick="handleLogin()">Googleログイン</button>
+        </div>
+        <div class="card">
+            <h3>🏆 ランキング</h3>
+            <div id="ranking-list"></div>
         </div>
     </section>
 
     <section id="start-screen" class="screen" style="display:none">
         <div class="card">
-            <h2 style="margin-top:0">シーンを選択</h2>
+            <h2 style="font-weight:900;">シーンを選択</h2>
             <div class="mode-selector">
                 <div class="mode-option">
-                    <input type="radio" name="mode" value="casual" id="m1" checked>
-                    <label for="m1" class="mode-label">
-                        <span class="icon">🍺</span>
-                        <div class="text-group"><span class="title">カジュアル</span><span class="desc">飲み会や友人に</span></div>
-                    </label>
+                    <input type="radio" name="mode" value="icebreak" id="m1" checked>
+                    <label for="m1" class="mode-label">🧊 <div><b>アイスブレイク</b></div></label>
                 </div>
                 <div class="mode-option">
-                    <input type="radio" name="mode" value="business" id="m2">
-                    <label for="m2" class="mode-label">
-                        <span class="icon">💼</span>
-                        <div class="text-group"><span class="title">ビジネス</span><span class="desc">社内懇親会に</span></div>
-                    </label>
+                    <input type="radio" name="mode" value="casual" id="m2">
+                    <label for="m2" class="mode-label">🍺 <div><b>カジュアル</b></div></label>
+                </div>
+                <div class="mode-option">
+                    <input type="radio" name="mode" value="business" id="m3">
+                    <label for="m3" class="mode-label">💼 <div><b>ビジネス</b></div></label>
                 </div>
             </div>
-            <button class="btn-primary" onclick="onStartClicked()">このシーンで開始</button>
-            <button class="btn-text" onclick="showScreen('welcome-screen')" style="width:100%; margin-top:15px;">戻る</button>
+            <button class="btn-primary" style="margin-top:20px;" onclick="onStartClicked()">開始！</button>
         </div>
     </section>
 
     <section id="main-screen" class="screen" style="display:none">
-        <div class="card" style="text-align:center">
+        <div class="card">
             <div id="timer-display">01:00</div>
             <div class="timer-bar-bg"><div id="timer-bar-fill"></div></div>
-            <div style="display:flex; gap:10px;">
-                <button id="timer-start-btn" class="btn-primary" style="flex:2" onclick="toggleTimer()">スタート</button>
-                <button class="btn-secondary" style="flex:1" onclick="resetTimer()">リセット</button>
-            </div>
+            <button id="timer-start-btn" class="btn-primary" onclick="toggleTimer()">スタート</button>
         </div>
-        <div class="card topic-card">
-            <div class="topic-label">TOPIC</div>
-            <div id="topic-text">準備中...</div>
-        </div>
-        <button class="btn-primary" onclick="nextTopic()" style="padding:20px; font-size:1.1rem;">次のお題へ ≫</button>
-        <button class="btn-secondary" onclick="finishSession()" style="margin-top:10px;">宴会を終了する</button>
+        <div class="card topic-card"><div id="topic-text">準備中...</div></div>
+        <button class="btn-primary" onclick="nextTopic()">次へ ≫</button>
+        <button class="btn-secondary" style="color:var(--accent-red); margin-top:10px;" onclick="handleFinishClick()">🛑 終了</button>
     </section>
 
     <section id="finish-screen" class="screen" style="display:none">
         <div class="card" style="text-align:center">
             <h2>お疲れ様でした！</h2>
-            <p>今の盛り上がりをみんなと共有！</p>
-            <div class="rating-input" style="font-size: 2.5rem; margin: 20px 0;">
-                <span onclick="setRating(1)" class="star">🔥</span>
-                <span onclick="setRating(2)" class="star">🔥</span>
-                <span onclick="setRating(3)" class="star">🔥</span>
-                <span onclick="setRating(4)" class="star">🔥</span>
-                <span onclick="setRating(5)" class="star">🔥</span>
+            <div class="rating-input" style="margin:20px 0;">
+                <span onclick="setRating(1)" class="star">🔥</span><span onclick="setRating(2)" class="star">🔥</span><span onclick="setRating(3)" class="star">🔥</span><span onclick="setRating(4)" class="star">🔥</span><span onclick="setRating(5)" class="star">🔥</span>
             </div>
-            <textarea id="session-memo" placeholder="みんなに一言どうぞ！"></textarea>
-            <button id="save-btn" class="btn-primary" style="margin-top:20px;" onclick="saveSessionRecord()">クラウドに保存して終了</button>
-        </div>
-    </section>
-
-    <section id="finish-thanks-screen" class="screen" style="display:none">
-        <div class="card" style="text-align:center; padding: 3rem 1.5rem;">
-            <div style="font-size: 5rem; margin-bottom: 1rem;">🙌</div>
-            <h2>ありがとうございます！</h2>
-            <p style="color:var(--text-sub); line-height: 1.6;">
-                あなたの感想をクラウドに届けました。<br>素敵な宴会のお手伝いができて光栄です！
-            </p>
-            <div style="margin-top: 2rem; display: flex; flex-direction: column; gap: 10px;">
-                <button class="btn-primary" onclick="showReport()">EN-KAIレポートを見る</button>
-                <button class="btn-secondary" onclick="showScreen('welcome-screen')">ホームに戻る</button>
-            </div>
+            <textarea id="session-memo" placeholder="感想を入力（固定サイズ）"></textarea>
+            <button class="btn-primary" style="margin-top:20px;" onclick="saveSessionRecord()">保存して戻る</button>
         </div>
     </section>
 
     <section id="report-screen" class="screen" style="display:none">
         <div class="card">
-            <h2 style="margin-top:0">EN-KAIレポート</h2>
-            <div id="stats-summary" style="background:var(--primary-light); padding:15px; border-radius:12px; margin-bottom:20px; line-height:1.6;">
-                読み込み中...
-            </div>
-            <h3>最近の感想メモ</h3>
-            <div id="memo-list" style="max-height: 400px; overflow-y: auto;"></div>
-            <button class="btn-primary" style="margin-top:20px;" onclick="showScreen('welcome-screen')">ホームへ戻る</button>
+            <h2>📊 レポート履歴</h2>
+            <div id="memo-list"></div>
+            <button class="btn-primary" onclick="showScreen('welcome-screen')">ホームへ</button>
         </div>
     </section>
-
 </main>
 
-<footer>EN-KAI © 2025</footer>
 <script src="script.js"></script>
 </body>
 </html>

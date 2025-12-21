@@ -2,64 +2,52 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>使い方 - EN-KAI</title>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ガイド - EN-KAI</title>
     <link rel="stylesheet" href="style.css">
+    <script type="module">
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        onAuthStateChanged(getAuth(), (user) => {
+            const userStatus = document.getElementById('user-status');
+            if (userStatus) userStatus.innerText = user ? user.displayName : "ゲスト";
+        });
+    </script>
 </head>
 <body>
 
 <div id="overlay" class="overlay" onclick="toggleMenu()"></div>
 <nav id="side-menu" class="side-menu">
-    <div class="menu-links" style="margin-top:50px;">
+    <div style="padding: 10px; text-align: center; border-bottom: 1px solid var(--card-border);">
+        <div id="user-status" style="font-weight: 900;">ゲスト</div>
+    </div>
+    <div class="menu-links">
         <a href="index.html">🏠 ホーム</a>
+        <a href="index.html?screen=start-screen">🚀 宴会を開始</a>
+        <a href="index.html?screen=share-screen">💡 お題を共有する</a>
         <a href="guide.html">📖 使い方</a>
-        <a href="profile.html">👤 プロフィール</a>
-        <a href="ads.html">📜 利用規約・広告</a>
+        <a href="profile.html">👤 作成者について</a>
+        <a href="index.html?screen=report-screen">📊 自分のレポート</a>
+        <a href="#" onclick="handleLogout(); return false;" style="color:var(--accent-red); margin-top:20px;">🚪 ログアウト</a>
+        <a href="#" onclick="toggleMenu(); return false;">❌ 閉じる</a>
     </div>
 </nav>
 
 <header class="glass-header">
     <div class="header-inner">
-        <a href="index.html" class="logo">
-            <div class="logo-icon">E</div>
-            <span>EN-KAI</span>
-        </a>
+        <a href="index.html" class="logo"><div class="logo-icon">E</div><span>EN-KAI</span></a>
         <button class="menu-trigger" onclick="toggleMenu()">MENU</button>
     </div>
 </header>
 
 <main class="container">
-    <div class="card">
-        <h2 style="margin-top:0; color:var(--primary);">遊び方ガイド</h2>
-        <div class="step">
-            <p><strong>1. シーンを選ぶ</strong><br>
-            集まりの種類（カジュアル・ビジネス・レク）に合わせてモードを選択し、「開始する」を押します。</p>
-        </div>
-        <div class="step">
-            <p><strong>2. お題に答える</strong><br>
-            表示されたお題について、参加者で話を広げましょう。お題は自動でシャッフルされるので毎回新鮮です！</p>
-        </div>
-        <div class="step">
-            <p><strong>3. タイマーを活用</strong><br>
-            一人あたりの持ち時間を決めたい時はタイマーをスタート。終了すると振動（スマホのみ）でお知らせします。</p>
-        </div>
-        <div class="step">
-            <p><strong>4. 次のお題へ</strong><br>
-            話がひと区切りついたら「次のお題へ」ボタンを押して、どんどん場を盛り上げましょう！</p>
-        </div>
+    <div class="screen">
+        <h1 style="text-align: center; font-weight: 900; margin: 20px 0;">📖 使い方ガイド</h1>
+        <div class="card"><h3>1. 宴会をはじめる</h3><p>トップの「宴会を開始する」からシーンを選択。お題がランダムでセットされます。</p></div>
+        <div class="card"><h3>2. 実績をためる</h3><p>Googleログインをしてから宴会を終えると、盛り上げた回数がランキングに反映されます。</p></div>
+        <div class="card"><h3>3. お題を共有する</h3><p>メニューの「お題を共有する」から、あなた独自の盛り上がるテーマをみんなに共有しましょう！</p></div>
+        <button class="btn-primary" onclick="location.href='index.html'">ホームへ戻る</button>
     </div>
-
-    <button class="btn-primary" onclick="location.href='index.html'">さっそく使ってみる</button>
 </main>
-
-<footer>EN-KAI © 2025</footer>
-
-<script>
-    function toggleMenu() {
-        document.getElementById('side-menu').classList.toggle('active');
-        document.getElementById('overlay').classList.toggle('active');
-    }
-</script>
+<script src="script.js"></script>
 </body>
 </html>

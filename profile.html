@@ -3,18 +3,68 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>プロフィール - EN-KAI</title>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
+    <title>作成者について - EN-KAI</title>
     <link rel="stylesheet" href="style.css">
+    
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        
+        // 開発環境と共通のFirebaseコンフィグ
+        const firebaseConfig = {
+            apiKey: "AIzaSyCdFdzVaqfdHPEQH-iS-ufcV629EMt6k6g", 
+            authDomain: "en-ka1.firebaseapp.com",
+            projectId: "en-ka1", 
+            storageBucket: "en-ka1.firebasestorage.app",
+            messagingSenderId: "390713740088", 
+            appId: "1:390713740088:web:139bde844b5bedb1218fcd"
+        };
+        
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+        
+        // script.jsから参照できるようにグローバル展開
+        window.db = db; 
+        window.auth = auth;
+        window.dbMethods = { collection, getDocs, query, where };
+
+        // ログイン状態に応じてUIを更新
+        onAuthStateChanged(auth, (user) => {
+            const userStatusEl = document.getElementById('user-status');
+            const avatarTextEl = document.getElementById('profile-avatar-text');
+            
+            if (user) {
+                if(userStatusEl) userStatusEl.innerText = user.displayName;
+                if(avatarTextEl) avatarTextEl.innerText = user.displayName.charAt(0);
+                loadProfileStats(user.uid); // 実績をロード
+            } else {
+                if(userStatusEl) userStatusEl.innerText = "ゲスト";
+                if(avatarTextEl) avatarTextEl.innerText = "客";
+                loadProfileStats(null); // ゲスト用表示
+            }
+        });
+    </script>
 </head>
 <body>
 
+<div id="toast-notification" class="toast-banner">✅ 処理が完了しました</div>
+
 <div id="overlay" class="overlay" onclick="toggleMenu()"></div>
 <nav id="side-menu" class="side-menu">
-    <div class="menu-links" style="margin-top:50px;">
+    <div style="padding: 10px; text-align: center; border-bottom: 1px solid var(--card-border);">
+        <div id="user-status" style="font-weight: 900;">読み込み中...</div>
+    </div>
+    <div class="menu-links">
         <a href="index.html">🏠 ホーム</a>
-        <a href="guide.html">📖 使い方</a> <a href="profile.html">👤 プロフィール</a>
-        <a href="ads.html">📜 利用規約・広告</a>
+        <a href="index.html?screen=start-screen">🚀 宴会を開始</a>
+        <a href="index.html?screen=share-screen">💡 お題を共有する</a>
+        <a href="guide.html">📖 使い方</a>
+        <a href="profile.html">👤 作成者について</a>
+        <a href="index.html?screen=report-screen">📊 自分のレポート</a>
+        <a href="#" onclick="handleLogout(); return false;" style="color:var(--accent-red); margin-top:20px;">🚪 ログアウト</a>
+        <a href="#" onclick="toggleMenu(); return false;">❌ 閉じる</a>
     </div>
 </nav>
 
@@ -24,33 +74,117 @@
             <div class="logo-icon">E</div>
             <span>EN-KAI</span>
         </a>
-        <button class="menu-trigger" onclick="toggleMenu()">MENU</button>
+        <div class="header-controls">
+            <button class="mode-toggle-btn" onclick="toggleDarkMode()">🌓</button>
+            <button class="menu-trigger" onclick="toggleMenu()">MENU</button>
+        </div>
     </div>
 </header>
 
 <main class="container">
-    <div class="card" style="text-align:center">
-        <div style="width:80px; height:80px; background:var(--primary-light); border-radius:50%; margin:0 auto 15px; display:grid; place-items:center; font-size:2rem">👤</div>
-        <h2 style="margin:0">たなりんくん</h2>
-        <p style="color:var(--text-sub)">EN-KAI 制作者</p>
-    </div>
+    <div class="screen">
+        <h1 style="text-align:center; font-weight:900; margin: 20px 0;">作成者について</h1>
 
-    <div class="card">
-        <h3 style="margin-top:0">基本情報</h3>
-        <p><strong>生年月日:</strong> 2007年2月3日</p>
-        <p><strong>活動内容:</strong> 場の進行をスマートにサポートするWebツールの開発。</p>
-        <p><strong>連絡先:</strong>rin.tk.uni@gmail.com</p>
-    </div>
+        <div class="card" style="background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white; border: none;">
+            <h2 style="font-size: 1rem; margin-bottom: 15px; opacity: 0.9;">🏆 あなたの活動実績</h2>
+            <div style="display: flex; justify-content: space-around; text-align: center;">
+                <div>
+                    <div id="stat-count" style="font-size: 2rem; font-weight: 900;">--</div>
+                    <small style="opacity: 0.8;">開催回数</small>
+                </div>
+                <div>
+                    <div id="stat-rate" style="font-size: 2rem; font-weight: 900;">--</div>
+                    <small style="opacity: 0.8;">平均満足度</small>
+                </div>
+            </div>
+        </div>
 
-    <button class="btn-primary" onclick="location.href='index.html'">ホームに戻る</button>
+        <div class="card" style="text-align: center;">
+            <div class="profile-avatar" style="margin: 0 auto 15px;">
+                <span id="profile-avatar-text">た</span>
+            </div>
+            <h2 style="font-weight:900;">たなりんくん</h2>
+            <p style="color:var(--text-sub); margin-bottom: 20px;">大学生 / 個人開発者</p>
+            
+            <div style="text-align: left; padding: 15px; background: var(--secondary); border-radius: 15px; font-size: 0.95rem;">
+                <p style="margin-bottom: 10px;"><b>Message:</b></p>
+                <p>
+                    このアプリ「EN-KAI」を使っていただきありがとうございます。
+                    沈黙が怖い瞬間を、少しでも楽しく変えたいという想いで制作しました。
+                </p>
+                <p style="margin-top: 10px;">
+                    これからも機能を追加し、より使いやすいツールにアップデートしていきます！
+                </p>
+            </div>
+        </div>
+
+        <button class="btn-primary" onclick="location.href='index.html'">ホームへ戻る</button>
+    </div>
 </main>
 
-<footer>EN-KAI © 2025</footer>
+<footer>EN-KAI Project &copy; 2025</footer>
+
+<script src="script.js"></script>
+
 <script>
-    function toggleMenu() {
-        document.getElementById('side-menu').classList.toggle('active');
-        document.getElementById('overlay').classList.toggle('active');
+    /**
+     * Firebaseからユーザーのセッション履歴を取得し、
+     * 累計回数と満足度の平均を計算して表示する関数
+     */
+    async function loadProfileStats(uid) {
+        const countEl = document.getElementById('stat-count');
+        const rateEl = document.getElementById('stat-rate');
+        
+        // ログインしていない場合は0を表示
+        if (!uid) {
+            if(countEl) countEl.innerText = "0回";
+            if(rateEl) rateEl.innerText = "0.0";
+            return;
+        }
+        
+        try {
+            // Firebaseから自分のIDに紐づくデータを全取得
+            const q = window.dbMethods.query(
+                window.dbMethods.collection(window.db, "sessions"), 
+                window.dbMethods.where("uid", "==", uid)
+            );
+            const snap = await window.dbMethods.getDocs(q);
+            
+            let totalRating = 0;
+            let sessionCount = 0;
+            
+            snap.forEach(doc => {
+                const data = doc.data();
+                if (data.rating) {
+                    totalRating += data.rating;
+                    sessionCount++;
+                }
+            });
+            
+            // UIに数値を反映
+            if(countEl) countEl.innerText = sessionCount + "回";
+            if(rateEl) {
+                const average = sessionCount > 0 ? (totalRating / sessionCount).toFixed(1) : "0.0";
+                rateEl.innerText = average;
+            }
+        } catch(e) {
+            console.error("実績の取得に失敗しました:", e);
+            if(countEl) countEl.innerText = "Error";
+        }
+    }
+
+    /**
+     * ログアウト処理のラッパー
+     */
+    async function handleLogout() {
+        try {
+            await window.auth.signOut();
+            location.href = "index.html"; // ログアウト後はホームへ
+        } catch (e) {
+            console.error("ログアウトエラー:", e);
+        }
     }
 </script>
+
 </body>
 </html>
