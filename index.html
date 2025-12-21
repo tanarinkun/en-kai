@@ -3,38 +3,51 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>EN-KAI</title>
+    <title>EN-KAI | 統合版PWA</title>
+    <link rel="manifest" href="manifest.json">
     <link rel="stylesheet" href="style.css">
+    
     <script type="module">
-        /* Firebase設定（省略なし） */
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, collection, addDoc, getDocs, query, orderBy, where, limit } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        
         const firebaseConfig = {
             apiKey: "AIzaSyCdFdzVaqfdHPEQH-iS-ufcV629EMt6k6g", authDomain: "en-ka1.firebaseapp.com",
             projectId: "en-ka1", storageBucket: "en-ka1.firebasestorage.app",
             messagingSenderId: "390713740088", appId: "1:390713740088:web:139bde844b5bedb1218fcd"
         };
+
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const auth = getAuth(app);
         const provider = new GoogleAuthProvider();
-        window.db = db; window.auth = auth;
+        
+        window.db = db; window.auth = auth; window.provider = provider;
         window.dbMethods = { addDoc, collection, getDocs, query, orderBy, where, limit };
-        window.authMethods = { signInWithPopup, provider, signOut };
+        window.authMethods = { signInWithPopup, signOut };
 
         onAuthStateChanged(auth, (user) => {
-            const userStatusElements = document.querySelectorAll('.dynamic-user-status');
-            userStatusElements.forEach(el => {
-                el.innerText = user ? user.displayName : "ゲスト";
-            });
+            const authLink = document.getElementById('auth-link');
+            const userStatus = document.getElementById('user-status');
             if (user) {
-                document.getElementById('login-section').style.display = 'none';
+                userStatus.innerText = user.displayName + " さん";
+                authLink.innerHTML = "🚪 ログアウト";
+                authLink.style.borderColor = "var(--accent-red)";
+                authLink.onclick = () => { handleLogout(); };
+                loadProfileStats(user.uid); 
                 loadDashboardData();
             } else {
-                document.getElementById('login-section').style.display = 'block';
+                userStatus.innerText = "ゲスト";
+                authLink.innerHTML = "🔑 Googleログイン";
+                authLink.style.borderColor = "var(--primary)";
+                authLink.onclick = () => { handleLogin(); };
             }
         });
+
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js').then(() => console.log("SW Registered"));
+        }
     </script>
 </head>
 <body>
@@ -43,24 +56,24 @@
 
 <div id="overlay" class="overlay" onclick="toggleMenu()"></div>
 <nav id="side-menu" class="side-menu">
-    <div style="padding: 10px; text-align: center; border-bottom: 1px solid var(--card-border);">
-        <div class="dynamic-user-status" style="font-weight: 900;">読み込み中...</div>
+    <div style="text-align: center; margin-bottom: 20px;">
+        <div id="user-status" style="font-weight: 900; font-size: 1.2rem;">ゲスト</div>
     </div>
     <div class="menu-links">
-        <a href="index.html">🏠 ホーム</a>
+        <a href="#" onclick="showScreen('welcome-screen'); return false;">🏠 ホーム</a>
         <a href="#" onclick="showScreen('start-screen'); return false;">🚀 宴会を開始</a>
-        <a href="#" onclick="showScreen('share-screen'); return false;">💡 お題を共有する</a>
-        <a href="guide.html">📖 使い方</a>
-        <a href="profile.html">👤 作成者について</a>
-        <a href="#" onclick="showReport(); return false;">📊 自分のレポート</a>
-        <a href="#" onclick="handleLogout(); return false;" style="color:var(--accent-red); margin-top:20px;">🚪 ログアウト</a>
-        <a href="#" onclick="toggleMenu(); return false;">❌ 閉じる</a>
+        <a href="#" onclick="showScreen('guide-screen'); return false;">📖 使い方</a>
+        <a href="#" onclick="showScreen('profile-screen'); return false;">👤 作成者について</a>
+        <a href="#" onclick="showReport(); return false;">📊 みんなのレポート</a>
+        <a href="#" id="auth-link">🔑 ログイン</a>
     </div>
 </nav>
 
 <header class="glass-header">
     <div class="header-inner">
-        <a href="index.html" class="logo"><div class="logo-icon">E</div><span>EN-KAI</span></a>
+        <a href="#" onclick="showScreen('welcome-screen'); return false;" class="logo">
+            <div class="logo-icon">E</div><span>EN-KAI</span>
+        </a>
         <div class="header-controls">
             <button class="mode-toggle-btn" onclick="toggleDarkMode()">🌓</button>
             <button class="menu-trigger" onclick="toggleMenu()">MENU</button>
@@ -70,39 +83,30 @@
 
 <main class="container">
     <section id="welcome-screen" class="screen">
-        <div class="card" style="text-align:center; padding: 3rem 1.5rem;">
-            <div style="font-size: 3rem; margin-bottom: 1rem;">🎉</div>
+        <div class="card" style="text-align:center; padding: 4rem 1.5rem;">
+            <div style="font-size: 4rem; margin-bottom: 1rem;">🎊</div>
             <h1 style="font-weight:900;">EN-KAI</h1>
-            <p style="color:var(--text-sub); margin-bottom: 2rem;">沈黙を最高の笑顔へ。</p>
+            <p style="color:var(--text-sub); margin-bottom: 2.5rem;">沈黙を、最高の思い出に。</p>
             <button class="btn-primary" onclick="showScreen('start-screen')">宴会を開始する</button>
         </div>
-        <div id="login-section" class="card" style="text-align:center; border: 2px dashed var(--primary);">
-            <button class="btn-secondary" onclick="handleLogin()">Googleログイン</button>
-        </div>
         <div class="card">
-            <h3>🏆 ランキング</h3>
+            <h3 style="margin-bottom:15px; display:flex; justify-content:space-between; align-items:center;">
+                🏆 盛り上げランキング
+                <small style="font-size:0.7rem; color:var(--text-sub);">リアルタイム</small>
+            </h3>
             <div id="ranking-list"></div>
         </div>
     </section>
 
     <section id="start-screen" class="screen" style="display:none">
         <div class="card">
-            <h2 style="font-weight:900;">シーンを選択</h2>
+            <h2 style="font-weight:900; margin-bottom: 20px;">シーンを選択</h2>
             <div class="mode-selector">
-                <div class="mode-option">
-                    <input type="radio" name="mode" value="icebreak" id="m1" checked>
-                    <label for="m1" class="mode-label">🧊 <div><b>アイスブレイク</b></div></label>
-                </div>
-                <div class="mode-option">
-                    <input type="radio" name="mode" value="casual" id="m2">
-                    <label for="m2" class="mode-label">🍺 <div><b>カジュアル</b></div></label>
-                </div>
-                <div class="mode-option">
-                    <input type="radio" name="mode" value="business" id="m3">
-                    <label for="m3" class="mode-label">💼 <div><b>ビジネス</b></div></label>
-                </div>
+                <div class="mode-option"><input type="radio" name="mode" value="icebreak" id="m1" checked><label for="m1" class="mode-label">🧊 アイスブレイク</label></div>
+                <div class="mode-option"><input type="radio" name="mode" value="casual" id="m2"><label for="m2" class="mode-label">🍺 カジュアル</label></div>
+                <div class="mode-option"><input type="radio" name="mode" value="business" id="m3"><label for="m3" class="mode-label">💼 ビジネス</label></div>
             </div>
-            <button class="btn-primary" style="margin-top:20px;" onclick="onStartClicked()">開始！</button>
+            <button class="btn-primary" style="margin-top:25px;" onclick="onStartClicked()">開始！</button>
         </div>
     </section>
 
@@ -113,26 +117,80 @@
             <button id="timer-start-btn" class="btn-primary" onclick="toggleTimer()">スタート</button>
         </div>
         <div class="card topic-card"><div id="topic-text">準備中...</div></div>
-        <button class="btn-primary" onclick="nextTopic()">次へ ≫</button>
-        <button class="btn-secondary" style="color:var(--accent-red); margin-top:10px;" onclick="handleFinishClick()">🛑 終了</button>
+        <button class="btn-primary" onclick="nextTopic()">次のお題 ≫</button>
+        <button id="finish-trigger" class="btn-primary btn-finish" onclick="handleFinishClick()">🛑 宴会をお開きにする</button>
     </section>
 
     <section id="finish-screen" class="screen" style="display:none">
         <div class="card" style="text-align:center">
             <h2>お疲れ様でした！</h2>
-            <div class="rating-input" style="margin:20px 0;">
+            <p style="margin-top:10px; font-size:0.85rem; color:var(--text-sub);">満足度とお題の感想を入力してください（必須）</p>
+            <div class="rating-input" style="margin:25px 0;">
                 <span onclick="setRating(1)" class="star">🔥</span><span onclick="setRating(2)" class="star">🔥</span><span onclick="setRating(3)" class="star">🔥</span><span onclick="setRating(4)" class="star">🔥</span><span onclick="setRating(5)" class="star">🔥</span>
             </div>
-            <textarea id="session-memo" placeholder="感想を入力（固定サイズ）"></textarea>
-            <button class="btn-primary" style="margin-top:20px;" onclick="saveSessionRecord()">保存して戻る</button>
+            <textarea id="session-memo" placeholder="みんなに共有するメッセージを書いてください"></textarea>
+            <button class="btn-primary" onclick="saveSessionRecord()">保存して公開する</button>
+            <p id="validation-error" style="color:var(--accent-red); font-size:0.8rem; margin-top:10px; display:none;">⚠️ 評価と感想を入力してください</p>
+        </div>
+    </section>
+
+    <section id="guide-screen" class="screen" style="display:none">
+        <div class="card">
+            <h2 style="font-weight:900; margin-bottom:20px;">📖 使い方</h2>
+            <div class="guide-steps">
+                <div class="guide-item"><div class="guide-num">1</div><div class="guide-content"><h3>シーン選択</h3><p>状況に合ったお題を表示します。</p></div></div>
+                <div class="guide-item"><div class="guide-num">2</div><div class="guide-content"><h3>お題を話す</h3><p>タイマーに合わせて会話を楽しみます。</p></div></div>
+                <div class="guide-item"><div class="guide-num">3</div><div class="guide-content"><h3>記録する</h3><p>感想は「みんなのレポート」に公開され、全体の盛り上げランキングに反映されます。</p></div></div>
+            </div>
+            <button class="btn-primary" style="margin-top:20px;" onclick="showScreen('welcome-screen')">戻る</button>
+        </div>
+    </section>
+
+    <section id="profile-screen" class="screen" style="display:none">
+        <div class="card">
+            <div style="display:flex; align-items:center; gap:15px; margin-bottom:20px;">
+                <div class="logo-icon" style="width:50px; height:50px; font-size:1.5rem;">👤</div>
+                <div><h2 style="font-weight:900;">たなりんくん</h2><p style="font-size:0.85rem; color:var(--text-sub);">大学生 / 個人開発</p></div>
+            </div>
+            <div class="profile-detail">
+                <p>使う人が迷わず、自然に使えることを意識したシンプルな設計を心がけています。</p>
+                <h3 class="profile-sub-title">💡 興味・関心</h3>
+                <ul style="font-size:0.9rem; color:var(--text-sub); margin-bottom:15px; list-style:none;">
+                    <li>・会話支援Webサービス</li>
+                    <li>・初対面グループの支援</li>
+                    <li>・分かりやすいUI設計</li>
+                </ul>
+                <h3 class="profile-sub-title">🔗 リンク</h3>
+                <a href="https://x.com/dcylko" target="_blank" class="link-btn">𝕏 (@dcylko)</a>
+                <a href="mailto:rin.tk.uni@gmail.com" class="link-btn">✉️ メールを送る</a>
+            </div>
+            <button class="btn-primary" style="margin-top:30px;" onclick="showScreen('welcome-screen')">戻る</button>
         </div>
     </section>
 
     <section id="report-screen" class="screen" style="display:none">
+        <div class="card stats-card-personal">
+            <p class="stats-label">🏆 あなたの活動実績</p>
+            <div class="stats-flex">
+                <div><div id="stat-count" class="stats-val">0</div><small>累計開催</small></div>
+                <div><div id="stat-rate" class="stats-val">0.0</div><small>平均満足度</small></div>
+            </div>
+        </div>
+
+        <div class="card stats-card-global">
+            <p class="stats-label">🌎 EN-KAI 全体の盛り上がり</p>
+            <div class="stats-flex">
+                <div><div id="global-count" class="stats-val">0</div><small>総宴会数</small></div>
+                <div><div id="global-stars" class="stats-val">0</div><small>総ファイア数</small></div>
+            </div>
+        </div>
+
         <div class="card">
-            <h2>📊 レポート履歴</h2>
-            <div id="memo-list"></div>
-            <button class="btn-primary" onclick="showScreen('welcome-screen')">ホームへ</button>
+            <h2 style="margin-bottom:15px;">🌎 みんなのレポート</h2>
+            <div id="memo-list" class="report-list">
+                <div style="text-align:center; padding:20px; color:var(--text-sub);">読み込み中...</div>
+            </div>
+            <button class="btn-primary" style="margin-top:20px;" onclick="showScreen('welcome-screen')">ホームへ戻る</button>
         </div>
     </section>
 </main>

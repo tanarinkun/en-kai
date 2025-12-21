@@ -1,6 +1,5 @@
 /* ==========================================================================
-   EN-KAI プロジェクト - 究極統合スタイルシート (v4.8)
-   修正点：ヘッダー配置、ラジオボタン非表示、テキストエリア固定
+   EN-KAI 究極統合スタイル (v5.9) - 実績・統計強化版
    ========================================================================== */
 
 @import url('https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@700;800&family=Noto+Sans+JP:wght@400;700;900&display=swap');
@@ -15,144 +14,66 @@
     --card-border: #f1f5f9;
     --text-main: #1e293b;
     --text-sub: #64748b;
-    --text-white: #ffffff;
     --accent-red: #ff6b6b;
     --radius-lg: 28px;
     --radius-md: 18px;
-    --shadow-md: 0 12px 30px -5px rgba(0, 0, 0, 0.08);
-    --header-h: 70px;
 }
 
 body.dark-mode {
-    --bg: #0f172a;
-    --card-bg: #1e293b;
-    --card-border: #334155;
-    --text-main: #f1f5f9;
-    --text-sub: #94a3b8;
-    --secondary: #334155;
+    --bg: #0f172a; --card-bg: #1e293b; --card-border: #334155; --text-main: #f1f5f9; --text-sub: #94a3b8; --secondary: #334155;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+body { font-family: 'Noto Sans JP', sans-serif; background: var(--bg); color: var(--text-main); min-height: 100vh; overflow-x: hidden; }
+.container { max-width: 500px; margin: 0 auto; padding: 20px; width: 100%; }
 
-body {
-    font-family: 'Noto Sans JP', sans-serif;
-    background: var(--bg);
-    color: var(--text-main);
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    overflow-x: hidden;
-}
-
-.container { max-width: 500px; margin: 0 auto; padding: 20px; flex: 1; width: 100%; }
-
-/* --- ヘッダー：ダークモードボタンをメニューの左に配置 --- */
-.glass-header { 
-    position: sticky; top: 0; background: var(--card-bg); z-index: 100; 
-    border-bottom: 1px solid var(--card-border); height: var(--header-h); 
-    display: flex; align-items: center; 
-}
-.header-inner { 
-    width: 100%; max-width: 600px; margin: 0 auto; padding: 0 20px; 
-    display: flex; justify-content: space-between; align-items: center; 
-}
-.header-controls { 
-    display: flex; align-items: center; gap: 12px; /* ボタン同士の間隔 */
-}
-
+/* ヘッダー */
+.glass-header { position: sticky; top: 0; background: var(--card-bg); z-index: 100; border-bottom: 1px solid var(--card-border); height: 70px; display: flex; align-items: center; }
+.header-inner { width: 100%; max-width: 600px; margin: 0 auto; padding: 0 20px; display: flex; justify-content: space-between; align-items: center; }
 .logo { display: flex; align-items: center; gap: 12px; text-decoration: none; color: var(--text-main); font-weight: 900; }
-.logo-icon { width: 38px; height: 38px; background: var(--primary); color: white; border-radius: 12px; display: grid; place-items: center; }
+.logo-icon { width: 38px; height: 38px; background: var(--primary); color: white; border-radius: 12px; display: grid; place-items: center; font-weight: 900; }
+.header-controls { display: flex; align-items: center; gap: 12px; }
+.mode-toggle-btn { background: var(--secondary); border: none; width: 44px; height: 44px; border-radius: 12px; font-size: 1.2rem; cursor: pointer; }
+.menu-trigger { background: var(--primary); color: white; border: none; padding: 10px 18px; border-radius: 12px; font-weight: 800; cursor: pointer; }
 
-/* モード切替ボタン */
-.mode-toggle-btn {
-    background: var(--secondary);
-    border: none;
-    width: 44px;
-    height: 44px;
-    border-radius: 12px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.2rem;
-    transition: 0.2s;
-}
-
-/* メニューボタン */
-.menu-trigger {
-    background: var(--primary);
-    color: white;
-    border: none;
-    padding: 10px 18px;
-    border-radius: 12px;
-    font-weight: 800;
-    cursor: pointer;
-    box-shadow: 0 4px 12px rgba(80, 200, 120, 0.2);
-}
-
-/* --- サイドメニュー --- */
-.side-menu { 
-    position: fixed; right: -300px; top: 0; width: 280px; height: 100%; 
-    background: var(--card-bg); z-index: 2001; transition: 0.4s cubic-bezier(0.165, 0.84, 0.44, 1); 
-    box-shadow: -10px 0 30px rgba(0,0,0,0.1); padding: 20px; 
-}
+/* サイドメニュー */
+.side-menu { position: fixed; right: -300px; top: 0; width: 280px; height: 100%; background: var(--card-bg); z-index: 2001; transition: 0.4s; padding: 30px 20px; box-shadow: -10px 0 30px rgba(0,0,0,0.1); }
 .side-menu.active { right: 0; }
-.menu-links { display: flex; flex-direction: column; gap: 12px; margin-top: 20px; }
+.menu-links { display: flex; flex-direction: column; gap: 12px; }
 .menu-links a { text-decoration: none; color: var(--text-main); padding: 16px; border-radius: var(--radius-md); background: var(--secondary); font-weight: 700; }
-
-.overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); z-index: 2000; }
+.overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 2000; }
 .overlay.active { display: block; }
 
-/* --- ラジオボックスの非表示とカスタムラベル --- */
-.mode-selector { display: grid; gap: 12px; margin-top: 15px; }
-.mode-option input[type="radio"] {
-    display: none; /* ラジオボタン本体を消去 */
-}
-.mode-label { 
-    display: flex; 
-    align-items: center; 
-    gap: 15px; 
-    padding: 20px; 
-    background: var(--secondary); 
-    border-radius: var(--radius-md); 
-    cursor: pointer; 
-    border: 3px solid transparent; 
-    transition: 0.3s;
-}
-/* 選択時のスタイル */
-.mode-option input:checked + .mode-label { 
-    border-color: var(--primary); 
-    background: var(--primary-light); 
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-md);
-}
+/* カード */
+.card { background: var(--card-bg); border-radius: var(--radius-lg); padding: 25px; box-shadow: 0 12px 30px rgba(0,0,0,0.05); margin-bottom: 20px; border: 1px solid var(--card-border); }
+.btn-primary { width: 100%; background: var(--primary); color: white; border: none; padding: 18px; border-radius: var(--radius-md); font-weight: 900; cursor: pointer; box-shadow: 0 4px 12px rgba(80, 200, 120, 0.2); }
+.btn-finish { background: var(--accent-red) !important; margin-top: 15px; }
 
-/* --- テキストエリア：固定サイズ --- */
-textarea { 
-    width: 100%; 
-    height: 120px; /* 高さを固定 */
-    border-radius: 15px; 
-    padding: 15px; 
-    border: 1px solid var(--card-border); 
-    background: var(--bg); 
-    color: var(--text-main); 
-    font-family: inherit; 
-    resize: none; /* ユーザーによるサイズ変更を禁止 */
-    font-size: 1rem;
-}
+/* 統計カード専用スタイル */
+.stats-card-personal { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white; border: none; margin-bottom: 12px; }
+.stats-card-global { background: #1e293b; color: white; border: none; margin-bottom: 20px; }
+.stats-label { font-size: 0.8rem; opacity: 0.8; margin-bottom: 10px; text-align: center; font-weight: 700; }
+.stats-flex { display: flex; justify-content: space-around; text-align: center; }
+.stats-val { font-size: 1.8rem; font-weight: 900; }
 
-/* --- カード・ボタン --- */
-.card { background: var(--card-bg); border-radius: var(--radius-lg); padding: 25px; box-shadow: var(--shadow-md); margin-bottom: 20px; border: 1px solid var(--card-border); }
-.btn-primary { width: 100%; background: var(--primary); color: white; border: none; padding: 18px; border-radius: var(--radius-md); font-weight: 900; font-size: 1.1rem; cursor: pointer; }
+/* レポートリスト */
+.report-list { display: flex; flex-direction: column; gap: 15px; }
+.report-item { background: var(--secondary); padding: 18px; border-radius: var(--radius-md); border-left: 4px solid var(--primary); }
+.report-item h4 { font-size: 0.8rem; color: var(--primary-dark); margin-bottom: 8px; font-weight: 900; display: flex; justify-content: space-between; }
+.report-item .memo-text { font-size: 1rem; line-height: 1.5; color: var(--text-main); margin: 8px 0; font-weight: 700; }
 
-/* --- タイマー & お題 --- */
-#timer-display { font-size: 2.5rem; font-weight: 900; text-align: center; margin-bottom: 10px; }
-.topic-card { min-height: 220px; display: flex; align-items: center; justify-content: center; background: var(--primary-light); border: 3px dashed var(--primary); margin-bottom: 20px; padding: 20px; }
-#topic-text { font-family: 'M PLUS Rounded 1c', sans-serif; font-size: 1.7rem; font-weight: 800; text-align: center; }
-
-.star { font-size: 2.5rem; cursor: pointer; opacity: 0.2; transition: 0.2s; }
-.star.active { opacity: 1; transform: scale(1.1); }
-
-.toast-banner { position: fixed; top: -100px; left: 50%; transform: translateX(-50%); background: #1e293b; color: white; padding: 15px 30px; border-radius: 50px; z-index: 5000; transition: 0.5s; }
+/* UI */
+.mode-selector input { display: none; }
+.mode-label { display: block; padding: 18px; background: var(--secondary); border-radius: var(--radius-md); cursor: pointer; text-align: center; margin-bottom: 10px; border: 3px solid transparent; font-weight: 700; }
+.mode-selector input:checked + .mode-label { border-color: var(--primary); background: var(--primary-light); }
+textarea { width: 100%; height: 120px; border-radius: 15px; padding: 15px; border: 1px solid var(--card-border); resize: none; margin-top: 15px; font-family: inherit; }
+.topic-card { min-height: 220px; display: flex; align-items: center; justify-content: center; text-align: center; font-size: 1.8rem; font-weight: 800; color: var(--primary); background: var(--primary-light); border: 2px dashed var(--primary); border-radius: 20px; }
+#timer-display { font-size: 3.5rem; font-weight: 900; text-align: center; margin-bottom: 10px; }
+.timer-bar-bg { background: var(--secondary); height: 12px; border-radius: 6px; margin-bottom: 20px; overflow: hidden; }
+#timer-bar-fill { background: var(--primary); height: 100%; width: 100%; transition: 1s linear; }
+.star { font-size: 2.2rem; cursor: pointer; opacity: 0.2; filter: grayscale(1); transition: 0.2s; }
+.star.active { opacity: 1; filter: grayscale(0); transform: scale(1.1); }
+.toast-banner { position: fixed; top: -100px; left: 50%; transform: translateX(-50%); background: #1e293b; color: white; padding: 12px 30px; border-radius: 50px; z-index: 5000; transition: 0.5s; font-weight: 700; box-shadow: 0 10px 20px rgba(0,0,0,0.2); }
 .toast-banner.show { top: 30px; }
-footer { text-align: center; padding: 40px; font-size: 0.8rem; color: var(--text-sub); }
+.link-btn { display: block; padding: 12px; background: var(--secondary); text-align: center; text-decoration: none; color: var(--text-main); border-radius: 12px; margin-top: 10px; font-weight: 700; }
+.profile-sub-title { font-size: 1rem; font-weight: 800; margin: 20px 0 10px; border-left: 4px solid var(--primary); padding-left: 10px; }

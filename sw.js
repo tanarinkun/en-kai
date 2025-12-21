@@ -3,10 +3,9 @@ const urlsToCache = [
   'index.html',
   'style.css',
   'script.js',
-  'manifest.json',
-  'guide.html',
-  'profile.html',
-  'ads.html'
+  'manifest.json'
+  // guide.htmlやprofile.htmlはindex.htmlに統合されたため削除してもOKですが、
+  // もし単体ファイルとしても残すならそのまま記載しておきます。
 ];
 
 self.addEventListener('install', (event) => {
