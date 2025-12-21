@@ -3,88 +3,100 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>EN-KAI | 統合版PWA</title>
+    <title>EN-KAI | 究極の宴会プロデュース</title>
+    
     <link rel="manifest" href="manifest.json">
     <link rel="stylesheet" href="style.css">
     
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, addDoc, getDocs, getDoc, doc, setDoc, query, orderBy, where, limit } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, getDocs, getDoc, doc, setDoc, deleteDoc, query, orderBy, where, limit } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
         
+        // Firebase設定
         const firebaseConfig = {
-            apiKey: "AIzaSyCdFdzVaqfdHPEQH-iS-ufcV629EMt6k6g", authDomain: "en-ka1.firebaseapp.com",
-            projectId: "en-ka1", storageBucket: "en-ka1.firebasestorage.app",
-            messagingSenderId: "390713740088", appId: "1:390713740088:web:139bde844b5bedb1218fcd"
+            apiKey: "AIzaSyCdFdzVaqfdHPEQH-iS-ufcV629EMt6k6g", 
+            authDomain: "en-ka1.firebaseapp.com",
+            projectId: "en-ka1", 
+            storageBucket: "en-ka1.firebasestorage.app",
+            messagingSenderId: "390713740088", 
+            appId: "1:390713740088:web:139bde844b5bedb1218fcd"
         };
 
+        // 初期化とグローバル展開 (script.jsから触れるようにする)
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const auth = getAuth(app);
         const provider = new GoogleAuthProvider();
         
-        window.db = db; window.auth = auth; window.provider = provider;
-        window.dbMethods = { addDoc, collection, getDocs, getDoc, doc, setDoc, query, orderBy, where, limit };
+        window.db = db; 
+        window.auth = auth; 
+        window.provider = provider;
+        window.dbMethods = { addDoc, collection, getDocs, getDoc, doc, setDoc, deleteDoc, query, orderBy, where, limit };
         window.authMethods = { signInWithPopup, signOut };
 
+        // ログイン状態の監視とUI反映
         onAuthStateChanged(auth, async (user) => {
-            const authLink = document.getElementById('auth-link');
-            const userStatus = document.getElementById('user-status');
-            const profileLink = document.getElementById('profile-edit-link');
-            
+            const profileCard = document.getElementById('side-profile-card');
+            const logoutContainer = document.getElementById('logout-container');
             if (user) {
-                // Firestoreからニックネームを取得
-                const userDoc = await getDoc(doc(db, "users", user.uid));
-                const userData = userDoc.exists() ? userDoc.data() : null;
-                const displayName = userData?.nickname || user.displayName;
-
-                userStatus.innerText = displayName + " さん";
-                authLink.innerHTML = "🚪 ログアウト";
-                authLink.style.borderColor = "var(--accent-red)";
-                authLink.onclick = () => { handleLogout(); };
-                profileLink.style.display = "block"; // プロフィール編集を表示
-                
-                loadProfileStats(user.uid); 
-                loadDashboardData();
+                profileCard.innerHTML = `
+                    <div class="side-user-info">
+                        <div class="logo-icon-large">👤</div>
+                        <div class="side-user-name">${user.displayName}</div>
+                        <div class="rank-badge">EN-KAI Master</div>
+                    </div>
+                `;
+                if(logoutContainer) logoutContainer.style.display = "block";
             } else {
-                userStatus.innerText = "ゲスト";
-                authLink.innerHTML = "🔑 Googleログイン";
-                authLink.style.borderColor = "var(--primary)";
-                authLink.onclick = () => { handleLogin(); };
-                profileLink.style.display = "none";
+                profileCard.innerHTML = `<button class="btn-primary" style="padding:10px 20px; border-radius:12px;" onclick="handleLogin()">🔑 ログインして同期</button>`;
+                if(logoutContainer) logoutContainer.style.display = "none";
             }
         });
-
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('sw.js').then(() => console.log("SW Registered"));
-        }
     </script>
 </head>
 <body>
 
-<div id="toast-notification" class="toast-banner">✅ 完了しました</div>
-
+<div id="toast-notification" class="toast-banner">✅ 完了</div>
 <div id="overlay" class="overlay" onclick="toggleMenu()"></div>
+
 <nav id="side-menu" class="side-menu">
-    <div style="text-align: center; margin-bottom: 20px;">
-        <div id="user-status" style="font-weight: 900; font-size: 1.2rem;">ゲスト</div>
+    <div class="side-menu-header">
+        <div id="side-profile-card"></div>
     </div>
     <div class="menu-links">
-        <a href="#" onclick="showScreen('welcome-screen'); return false;">🏠 ホーム</a>
-        <a href="#" onclick="showScreen('start-screen'); return false;">🚀 宴会を開始</a>
-        <a href="#" id="profile-edit-link" style="display:none;" onclick="showScreen('edit-profile-screen'); return false;">⚙️ プロフィール設定</a>
-        <a href="#" onclick="showScreen('guide-screen'); return false;">📖 使い方</a>
-        <a href="#" onclick="showScreen('profile-screen'); return false;">👤 作成者について</a>
-        <a href="#" onclick="showReport(); return false;">📊 みんなのレポート</a>
-        <a href="#" id="auth-link">🔑 ログイン</a>
+        <a href="#" onclick="showScreen('welcome-screen'); return false;">
+            <span class="nav-icon">🏠</span> ホーム
+        </a>
+        <a href="#" onclick="showScreen('start-screen'); return false;">
+            <span class="nav-icon">🚀</span> 宴会を開始
+        </a>
+        <a href="#" onclick="showReport(); return false;">
+            <span class="nav-icon">📊</span> みんなのレポート
+        </a>
+        <a href="#" onclick="showScreen('guide-screen'); return false;">
+            <span class="nav-icon">📖</span> 使い方・FAQ
+        </a>
+        <a href="#" onclick="showScreen('profile-screen'); return false;">
+            <span class="nav-icon">👤</span> 製作者について
+        </a>
+        <a href="#" onclick="showScreen('feedback-screen'); return false;">
+            <span class="nav-icon">📣</span> フィードバック
+        </a>
+        <div id="logout-container" class="logout-area" style="display:none;">
+            <a href="#" class="logout-link" onclick="handleLogout(); return false;">
+                <span class="nav-icon">🚪</span> ログアウト
+            </a>
+        </div>
     </div>
 </nav>
 
 <header class="glass-header">
     <div class="header-inner">
-        <a href="#" onclick="showScreen('welcome-screen'); return false;" class="logo">
-            <div class="logo-icon">E</div><span>EN-KAI</span>
-        </a>
+        <div class="logo-area" onclick="showScreen('welcome-screen')">
+            <div class="logo-icon">E</div>
+            <span class="logo-text">EN-KAI</span>
+        </div>
         <div class="header-controls">
             <button class="mode-toggle-btn" onclick="toggleDarkMode()">🌓</button>
             <button class="menu-trigger" onclick="toggleMenu()">MENU</button>
@@ -93,125 +105,167 @@
 </header>
 
 <main class="container">
+    
     <section id="welcome-screen" class="screen">
-        <div class="card" style="text-align:center; padding: 4rem 1.5rem;">
-            <div style="font-size: 4rem; margin-bottom: 1rem;">🎊</div>
-            <h1 style="font-weight:900;">EN-KAI</h1>
-            <p style="color:var(--text-sub); margin-bottom: 2.5rem;">沈黙を、最高の思い出に。</p>
-            <button class="btn-primary" onclick="showScreen('start-screen')">宴会を開始する</button>
+        <div class="card home-hero">
+            <div class="hero-emoji">🎊</div>
+            <h1 class="hero-title">EN-KAI</h1>
+            <p class="hero-subtitle">沈黙を、最高のスパイスに。</p>
+            <button class="btn-primary btn-giant" onclick="showScreen('start-screen')">宴会を開始する</button>
         </div>
         <div class="card">
-            <h3 style="margin-bottom:15px; display:flex; justify-content:space-between; align-items:center;">
-                🏆 盛り上げランキング
-                <small style="font-size:0.7rem; color:var(--text-sub);">リアルタイム</small>
-            </h3>
-            <div id="ranking-list"></div>
+            <h3 class="input-label-gold">💡 今日の宴会Tips</h3>
+            <p style="font-size: 0.9rem; color: var(--text-sub);">「無茶振りスロット」は、話が途切れたタイミングで回すと一番盛り上がります。</p>
         </div>
     </section>
 
     <section id="start-screen" class="screen" style="display:none">
-        <div class="card">
-            <h2 style="font-weight:900; margin-bottom: 20px;">シーンを選択</h2>
-            <div class="mode-selector">
-                <div class="mode-option"><input type="radio" name="mode" value="icebreak" id="m1" checked><label for="m1" class="mode-label">🧊 アイスブレイク</label></div>
-                <div class="mode-option"><input type="radio" name="mode" value="casual" id="m2"><label for="m2" class="mode-label">🍺 カジュアル</label></div>
-                <div class="mode-option"><input type="radio" name="mode" value="business" id="m3"><label for="m3" class="mode-label">💼 ビジネス</label></div>
+        <div class="card start-header-card">
+            <div class="sparkle-icon">✨</div>
+            <h2 class="section-title-center">宴会のセットアップ</h2>
+        </div>
+
+        <div class="card setup-card">
+            <p class="input-label-gold">🎯 モード選択</p>
+            <div class="mode-grid">
+                <div class="mode-item active" onclick="selectChip(this, 'icebreak')">
+                    <div class="mode-icon">🧊</div><span>アイス</span>
+                </div>
+                <div class="mode-item" onclick="selectChip(this, 'casual')">
+                    <div class="mode-icon">🍺</div><span>ふつう</span>
+                </div>
+                <div class="mode-item" onclick="selectChip(this, 'business')">
+                    <div class="mode-icon">💼</div><span>ガチ</span>
+                </div>
             </div>
-            <button class="btn-primary" style="margin-top:25px;" onclick="onStartClicked()">開始！</button>
+
+            <p class="input-label-gold" style="margin-top:20px;">👥 メンバー登録</p>
+            <div class="input-container-neon">
+                <input type="text" id="member-names" class="input-neon" placeholder="名前をスペースで区切って入力...">
+                <div class="input-line"></div>
+            </div>
+
+            <div class="option-row-fancy">
+                <div class="option-info">
+                    <strong>🎲 無茶振りミッション</strong>
+                    <p style="font-size:0.7rem; color:var(--text-sub);">スロット機能を有効にします</p>
+                </div>
+                <label class="switch">
+                    <input type="checkbox" id="slot-toggle" checked>
+                    <span class="slider round"></span>
+                </label>
+            </div>
+
+            <button class="btn-primary btn-giant btn-start-glow" onclick="onStartClicked()">
+                🔥 宴会を開始する！
+            </button>
         </div>
     </section>
 
     <section id="main-screen" class="screen" style="display:none">
-        <div class="card">
-            <div id="timer-display">01:00</div>
-            <div class="timer-bar-bg"><div id="timer-bar-fill"></div></div>
-            <button id="timer-start-btn" class="btn-primary" onclick="toggleTimer()">スタート</button>
+        <div class="step-indicator" id="step-info">Q 1 / 5</div>
+        
+        <div class="card topic-card-compact">
+            <div id="topic-text">準備完了...</div>
         </div>
-        <div class="card topic-card"><div id="topic-text">準備中...</div></div>
-        <button class="btn-primary" onclick="nextTopic()">次のお題 ≫</button>
-        <button id="finish-trigger" class="btn-primary btn-finish" onclick="handleFinishClick()">🛑 宴会をお開きにする</button>
-    </section>
 
-    <section id="finish-screen" class="screen" style="display:none">
-        <div class="card" style="text-align:center">
-            <h2>お疲れ様でした！</h2>
-            <p style="margin-top:10px; font-size:0.85rem; color:var(--text-sub);">今の盛り上がりを🔥で教えてください（必須）</p>
-            <div class="rating-input" style="margin:25px 0;">
-                <span onclick="setRating(1)" class="star">🔥</span><span onclick="setRating(2)" class="star">🔥</span><span onclick="setRating(3)" class="star">🔥</span><span onclick="setRating(4)" class="star">🔥</span><span onclick="setRating(5)" class="star">🔥</span>
+        <div id="slot-container" class="card slot-card-compact" style="display:none;">
+            <div class="slot-header">🎰 RANDOM MISSION</div>
+            <div class="slot-body-flex">
+                <div id="slot-target" class="slot-target-small">？？？</div>
+                <div id="slot-text" class="slot-text-small">タップで抽選</div>
             </div>
-            <textarea id="session-memo" placeholder="感想があれば入力してください（任意）"></textarea>
-            <button class="btn-primary" onclick="saveSessionRecord()">保存して公開する</button>
-            <p id="validation-error" style="color:var(--accent-red); font-size:0.8rem; margin-top:10px; display:none;">⚠️ 評価(🔥)を選択してください</p>
+            <button class="btn-slot-compact" onclick="spinSlot()">スロットを回す</button>
         </div>
-    </section>
 
-    <section id="edit-profile-screen" class="screen" style="display:none">
-        <div class="card">
-            <h2 style="font-weight:900; margin-bottom:20px;">👤 プロフィール設定</h2>
-            <p style="font-size:0.85rem; color:var(--text-sub); margin-bottom:10px;">アプリ内で表示されるニックネームを設定します。</p>
-            <input type="text" id="user-nickname-input" class="text-input" placeholder="ニックネームを入力">
-            <button class="btn-primary" style="margin-top:20px;" onclick="saveNickname()">保存する</button>
-            <button class="btn-primary" style="margin-top:10px; background:#ccc; color:#333;" onclick="showScreen('welcome-screen')">キャンセル</button>
+        <div class="card timer-card-ultra-compact">
+            <div class="timer-flex-row">
+                <div id="timer-display-compact">01:00</div>
+                <div class="timer-actions-row">
+                    <button class="timer-mini-btn" onclick="resetTimer()">🔄</button>
+                    <button id="timer-play-btn" class="timer-mini-btn play-btn" onclick="toggleTimer()">▶️</button>
+                </div>
+                <div class="timer-bar-wrapper">
+                    <div id="timer-bar-fill" class="timer-bar-inner"></div>
+                </div>
+            </div>
         </div>
-    </section>
 
-    <section id="guide-screen" class="screen" style="display:none">
-        <div class="card">
-            <h2 style="font-weight:900; margin-bottom:20px;">📖 使い方</h2>
-            <div class="guide-steps">
-                <div class="guide-item"><div class="guide-num">1</div><div class="guide-content"><h3>シーン選択</h3><p>状況に合ったお題を表示します。</p></div></div>
-                <div class="guide-item"><div class="guide-num">2</div><div class="guide-content"><h3>お題を話す</h3><p>タイマーに合わせて会話を楽しみます。</p></div></div>
-                <div class="guide-item"><div class="guide-num">3</div><div class="guide-content"><h3>記録する</h3><p>感想は「みんなのレポート」に公開されます。ニックネーム設定で匿名投稿も可能です。</p></div></div>
+        <div class="navigation-area-compact">
+            <button class="btn-primary btn-giant" onclick="nextTopic()">次のお題へ ≫</button>
+            <div class="secondary-actions">
+                <button class="btn-secondary" onclick="prevTopic()">≪ 戻る</button>
+                <button id="finish-trigger" class="btn-finish-outline" onclick="handleFinishClick()">🛑 終了</button>
             </div>
-            <button class="btn-primary" style="margin-top:20px;" onclick="showScreen('welcome-screen')">戻る</button>
-        </div>
-    </section>
-
-    <section id="profile-screen" class="screen" style="display:none">
-        <div class="card">
-            <div style="display:flex; align-items:center; gap:15px; margin-bottom:20px;">
-                <div class="logo-icon" style="width:50px; height:50px; font-size:1.5rem;">👤</div>
-                <div><h2 style="font-weight:900;">たなりんくん</h2><p style="font-size:0.85rem; color:var(--text-sub);">大学生 / 個人開発</p></div>
-            </div>
-            <div class="profile-detail">
-                <p>使う人が迷わず、自然に使えることを意識したシンプルな設計を心がけています。</p>
-                <h3 class="profile-sub-title">💡 興味・関心</h3>
-                <ul style="font-size:0.9rem; color:var(--text-sub); margin-bottom:15px; list-style:none;">
-                    <li>・会話支援Webサービス</li>
-                    <li>・初対面グループの支援</li>
-                    <li>・分かりやすいUI設計</li>
-                </ul>
-                <h3 class="profile-sub-title">🔗 リンク</h3>
-                <a href="https://x.com/dcylko" target="_blank" class="link-btn">𝕏 (@dcylko)</a>
-                <a href="mailto:rin.tk.uni@gmail.com" class="link-btn">✉️ メールを送る</a>
-            </div>
-            <button class="btn-primary" style="margin-top:30px;" onclick="showScreen('welcome-screen')">戻る</button>
         </div>
     </section>
 
     <section id="report-screen" class="screen" style="display:none">
-        <div class="card stats-card-personal">
-            <p class="stats-label">🏆 あなたの活動実績</p>
-            <div class="stats-flex">
-                <div><div id="stat-count" class="stats-val">0</div><small>累計開催</small></div>
-                <div><div id="stat-rate" class="stats-val">0.0</div><small>平均満足度</small></div>
+        <div class="report-header-card card bg-gold-gradient">
+            <h2 class="section-title" style="color:white; margin-bottom:10px;">📊 全世界の統計</h2>
+            <div class="stats-grid-gold">
+                <div class="stat-box">
+                    <small>総宴会回数</small>
+                    <div id="global-session-count" class="stat-count-large">0</div>
+                </div>
+                <div class="stat-box">
+                    <small>総ファイヤ数</small>
+                    <div id="global-fire-count" class="stat-count-large">0</div>
+                </div>
             </div>
         </div>
-        <div class="card stats-card-global">
-            <p class="stats-label">🌎 EN-KAI 全体の盛り上がり</p>
-            <div class="stats-flex">
-                <div><div id="global-count" class="stats-val">0</div><small>総宴会数</small></div>
-                <div><div id="global-stars" class="stats-val">0</div><small>総ファイア数</small></div>
-            </div>
-        </div>
+        <div id="memo-list" class="report-list-container"></div>
+        <button class="btn-primary btn-giant" style="margin-top:20px;" onclick="showScreen('welcome-screen')">🏠 戻る</button>
+    </section>
+
+    <section id="guide-screen" class="screen" style="display:none">
         <div class="card">
-            <h2 style="margin-bottom:15px;">🌎 みんなのレポート</h2>
-            <div id="memo-list" class="report-list">
-                <div style="text-align:center; padding:20px; color:var(--text-sub);">読み込み中...</div>
+            <h2 class="section-title">📖 使い方</h2>
+            <div class="guide-content" style="font-size: 0.9rem; color: var(--text-main);">
+                <p><b>1. 宴会をセットアップ</b><br>モードを選び、参加メンバーを入力します。</p>
+                <p style="margin-top:10px;"><b>2. トークを楽しむ</b><br>表示されるお題に沿って話しましょう。タイマーは1分に設定されています。</p>
+                <p style="margin-top:10px;"><b>3. 無茶振りを活用</b><br>スロットを回すと、ランダムに選ばれた人がミッションを遂行します。</p>
             </div>
-            <button class="btn-primary" style="margin-top:20px;" onclick="showScreen('welcome-screen')">ホームへ戻る</button>
+            <button class="btn-primary btn-giant" style="margin-top:20px;" onclick="showScreen('welcome-screen')">🏠 戻る</button>
         </div>
     </section>
+
+    <section id="profile-screen" class="screen" style="display:none">
+        <div class="card profile-card-main" style="text-align:center;">
+            <div class="logo-icon-large" style="margin: 0 auto 15px;">👤</div>
+            <h2 class="profile-name">たなりんくん</h2>
+            <p class="profile-bio" style="color:var(--text-sub);">「宴会の可能性を最大化する」を掲げる開発者。世界中の飲み会をよりクリエイティブに。</p>
+            <div class="app-version" style="margin-top:20px; font-size:0.8rem; opacity:0.6;">EN-KAI Version 10.9.0</div>
+            <button class="btn-primary btn-giant" style="margin-top:20px;" onclick="showScreen('welcome-screen')">🏠 戻る</button>
+        </div>
+    </section>
+
+    <section id="feedback-screen" class="screen" style="display:none">
+        <div class="card">
+            <h2 class="section-title">📣 フィードバック</h2>
+            <p style="font-size:0.8rem; color:var(--text-sub); margin-bottom:10px;">新機能のリクエストやバグ報告をお待ちしています。</p>
+            <textarea id="feedback-content" class="memo-styled" placeholder="例：お題を増やしてほしい！"></textarea>
+            <button class="btn-primary btn-giant" style="margin-top:15px;" onclick="sendFeedback()">送信する</button>
+            <button class="btn-secondary btn-giant" style="margin-top:10px;" onclick="showScreen('welcome-screen')">キャンセル</button>
+        </div>
+    </section>
+
+    <section id="finish-screen" class="screen" style="display:none">
+        <div class="card rating-card">
+            <h2 class="section-title" style="text-align:center;">宴会終了！</h2>
+            <p style="text-align:center; color:var(--text-sub);">今回の盛り上がりはいかがでしたか？</p>
+            <div class="rating-stars-container">
+                <span onclick="setRating(1)" class="star-icon">🔥</span>
+                <span onclick="setRating(2)" class="star-icon">🔥</span>
+                <span onclick="setRating(3)" class="star-icon">🔥</span>
+                <span onclick="setRating(4)" class="star-icon">🔥</span>
+                <span onclick="setRating(5)" class="star-icon">🔥</span>
+            </div>
+            <textarea id="session-memo" class="memo-styled" placeholder="今回の宴会の感想（一言メモ）..."></textarea>
+            <button class="btn-primary btn-giant" style="margin-top:20px;" onclick="saveSessionRecord()">保存して完了</button>
+        </div>
+    </section>
+
 </main>
 
 <script src="script.js"></script>
