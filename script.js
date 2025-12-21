@@ -1,9 +1,8 @@
 /**
  * ==========================================================================
- * EN-KAI プロジェクト - 共通ロジック (script.js v5.9)
+ * EN-KAI プロジェクト - 共通ロジック (script.js v6.1)
  * ==========================================================================
  */
-
 const rawTopics = {
     icebreak: ["最近笑ったことは？", "子供の頃のあだ名は？", "今の気分を天気で言うと？", "好きな食べ物ベスト3！", "自分を動物に例えると？"],
     casual: ["一生これしか食べられないなら何？", "今一番行きたい旅行先は？", "昨日何食べた？", "スマホの待ち受け、何にしてる？"],
@@ -13,7 +12,6 @@ const rawTopics = {
 let activeTopics = [], currentMode = "icebreak", currentIndex = 0, timerInterval = null;
 let initialTime = 60, timeLeft = 60, currentRating = 0;
 
-/* 画面制御系 */
 function showScreen(id) {
     document.querySelectorAll('.screen').forEach(s => s.style.display = 'none');
     const target = document.getElementById(id);
@@ -33,7 +31,6 @@ function toggleDarkMode() {
     localStorage.setItem('dark-mode', isDark ? 'enabled' : 'disabled');
 }
 
-/* 宴会メインフロー */
 function onStartClicked() {
     const rbs = document.getElementsByName("mode");
     for (let rb of rbs) { if (rb.checked) { currentMode = rb.value; break; } }
@@ -52,7 +49,6 @@ function nextTopic() {
     else { handleFinishClick(); }
 }
 
-/* タイマー系 */
 function toggleTimer() {
     const btn = document.getElementById("timer-start-btn");
     if (timerInterval) { clearInterval(timerInterval); timerInterval = null; btn.innerText = "スタート"; }
@@ -81,12 +77,10 @@ function updateTimerDisplay() {
     }
 }
 
-/* 終了確認 */
 function handleFinishClick() {
     const btn = document.getElementById('finish-trigger');
     if (btn.innerText === "🛑 宴会をお開きにする") { btn.innerText = "本当にお開きにしますか？"; }
     else { 
-        // 初期化
         currentRating = 0;
         document.querySelectorAll('.star').forEach(s => s.classList.remove('active'));
         document.getElementById('session-memo').value = "";
@@ -95,7 +89,6 @@ function handleFinishClick() {
     }
 }
 
-/* 評価保存 (入力チェック強化) */
 function setRating(v) {
     currentRating = v;
     document.querySelectorAll('.star').forEach((s, i) => s.classList.toggle('active', i < v));
@@ -104,14 +97,10 @@ function setRating(v) {
 
 async function saveSessionRecord() {
     const memo = document.getElementById('session-memo').value.trim();
-    const errorMsg = document.getElementById('validation-error');
-    
-    // バリデーションチェック
     if (currentRating === 0 || memo === "") {
-        errorMsg.style.display = 'block';
+        document.getElementById('validation-error').style.display = 'block';
         return;
     }
-
     const user = window.auth.currentUser;
     try {
         await window.dbMethods.addDoc(window.dbMethods.collection(window.db, "sessions"), {
@@ -128,14 +117,12 @@ async function saveSessionRecord() {
     } catch (e) { alert("保存に失敗しました。"); }
 }
 
-/* みんなのレポート表示 & 実績・全体統計の更新 */
 async function showReport() {
     showScreen('report-screen');
     const listEl = document.getElementById('memo-list');
     const user = window.auth.currentUser;
-    
     if(user) loadProfileStats(user.uid);
-    loadGlobalStats(); // 全体統計をロード
+    loadGlobalStats();
 
     try {
         const q = window.dbMethods.query(
@@ -145,33 +132,38 @@ async function showReport() {
         );
         const snap = await window.dbMethods.getDocs(q);
         let html = "";
-        
         snap.forEach(doc => {
             const data = doc.data();
             const date = new Date(data.timestamp).toLocaleString('ja-JP', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' });
-            html += `
-                <div class="report-item">
-                    <h4><span>👤 ${data.userName}</span> <span>🕒 ${date}</span></h4>
-                    <div class="stars">${"🔥".repeat(data.rating)}</div>
-                    <div class="memo-text">${data.memo}</div>
-                </div>`;
+            html += `<div class="report-item">
+                        <h4><span>👤 ${data.userName}</span> <span>🕒 ${date}</span></h4>
+                        <div class="stars">${"🔥".repeat(data.rating)}</div>
+                        <div class="memo-text">${data.memo}</div>
+                    </div>`;
         });
         listEl.innerHTML = html || "まだ誰もレポートを投稿していません。";
-    } catch (e) {
-        console.error(e);
-        listEl.innerHTML = "データの取得に失敗しました。";
-    }
+    } catch (e) { listEl.innerHTML = "データの取得に失敗しました。"; }
 }
 
-/* 認証・ダッシュボード系 */
 async function handleLogin() {
-    try { await window.authMethods.signInWithPopup(window.auth, window.provider); showToast(); }
-    catch (e) { alert("ログイン失敗"); }
+    try { 
+        await window.authMethods.signInWithPopup(window.auth, window.provider); 
+        showToast(); 
+    }
+    catch (e) { 
+        console.error("Login Error:", e);
+        if(e.code === 'auth/unauthorized-domain') {
+            alert("ログイン失敗: このURLはFirebaseで許可されていません。Firebaseコンソールの[Authorized domains]に現在のURLを追加してください。");
+        } else if(e.code === 'auth/operation-not-allowed') {
+            alert("ログイン失敗: Google認証が有効になっていません。");
+        } else {
+            alert("ログイン失敗: " + e.message);
+        }
+    }
 }
 
 async function handleLogout() { await window.authMethods.signOut(window.auth); location.reload(); }
 
-/* あなたの実績を取得 */
 async function loadProfileStats(uid) {
     try {
         const q = window.dbMethods.query(window.dbMethods.collection(window.db, "sessions"), window.dbMethods.where("uid", "==", uid));
@@ -183,28 +175,20 @@ async function loadProfileStats(uid) {
     } catch(e) {}
 }
 
-/* サイト全体の統計を取得 (追加) */
 async function loadGlobalStats() {
     try {
         const snap = await window.dbMethods.getDocs(window.dbMethods.collection(window.db, "sessions"));
         let totalStars = 0, totalCount = 0;
-        snap.forEach(doc => {
-            totalStars += doc.data().rating;
-            totalCount++;
-        });
+        snap.forEach(doc => { totalStars += doc.data().rating; totalCount++; });
         document.getElementById('global-count').innerText = totalCount;
         document.getElementById('global-stars').innerText = totalStars;
-    } catch(e) { console.error("全体統計取得失敗", e); }
+    } catch(e) {}
 }
 
 async function loadDashboardData() {
     const el = document.getElementById('ranking-list');
     try {
-        const q = window.dbMethods.query(
-            window.dbMethods.collection(window.db, "sessions"), 
-            window.dbMethods.orderBy("timestamp", "desc"), 
-            window.dbMethods.limit(5)
-        );
+        const q = window.dbMethods.query(window.dbMethods.collection(window.db, "sessions"), window.dbMethods.orderBy("timestamp", "desc"), window.dbMethods.limit(5));
         const snap = await window.dbMethods.getDocs(q);
         let html = "";
         snap.forEach(doc => { 
@@ -213,7 +197,7 @@ async function loadDashboardData() {
                         <span style="color:var(--primary); font-weight:900;">🔥 ${doc.data().rating}</span>
                      </div>`; 
         });
-        if(el) el.innerHTML = html || "みんなの活動を待っています！";
+        if(el) el.innerHTML = html || "活動を待っています！";
     } catch(e) {}
 }
 
