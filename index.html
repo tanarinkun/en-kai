@@ -9,7 +9,7 @@
     
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, addDoc, getDocs, query, orderBy, where, limit } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, getDocs, getDoc, doc, setDoc, query, orderBy, where, limit } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
         
         const firebaseConfig = {
@@ -24,17 +24,26 @@
         const provider = new GoogleAuthProvider();
         
         window.db = db; window.auth = auth; window.provider = provider;
-        window.dbMethods = { addDoc, collection, getDocs, query, orderBy, where, limit };
+        window.dbMethods = { addDoc, collection, getDocs, getDoc, doc, setDoc, query, orderBy, where, limit };
         window.authMethods = { signInWithPopup, signOut };
 
-        onAuthStateChanged(auth, (user) => {
+        onAuthStateChanged(auth, async (user) => {
             const authLink = document.getElementById('auth-link');
             const userStatus = document.getElementById('user-status');
+            const profileLink = document.getElementById('profile-edit-link');
+            
             if (user) {
-                userStatus.innerText = user.displayName + " さん";
+                // Firestoreからニックネームを取得
+                const userDoc = await getDoc(doc(db, "users", user.uid));
+                const userData = userDoc.exists() ? userDoc.data() : null;
+                const displayName = userData?.nickname || user.displayName;
+
+                userStatus.innerText = displayName + " さん";
                 authLink.innerHTML = "🚪 ログアウト";
                 authLink.style.borderColor = "var(--accent-red)";
                 authLink.onclick = () => { handleLogout(); };
+                profileLink.style.display = "block"; // プロフィール編集を表示
+                
                 loadProfileStats(user.uid); 
                 loadDashboardData();
             } else {
@@ -42,6 +51,7 @@
                 authLink.innerHTML = "🔑 Googleログイン";
                 authLink.style.borderColor = "var(--primary)";
                 authLink.onclick = () => { handleLogin(); };
+                profileLink.style.display = "none";
             }
         });
 
@@ -62,6 +72,7 @@
     <div class="menu-links">
         <a href="#" onclick="showScreen('welcome-screen'); return false;">🏠 ホーム</a>
         <a href="#" onclick="showScreen('start-screen'); return false;">🚀 宴会を開始</a>
+        <a href="#" id="profile-edit-link" style="display:none;" onclick="showScreen('edit-profile-screen'); return false;">⚙️ プロフィール設定</a>
         <a href="#" onclick="showScreen('guide-screen'); return false;">📖 使い方</a>
         <a href="#" onclick="showScreen('profile-screen'); return false;">👤 作成者について</a>
         <a href="#" onclick="showReport(); return false;">📊 みんなのレポート</a>
@@ -124,13 +135,23 @@
     <section id="finish-screen" class="screen" style="display:none">
         <div class="card" style="text-align:center">
             <h2>お疲れ様でした！</h2>
-            <p style="margin-top:10px; font-size:0.85rem; color:var(--text-sub);">満足度とお題の感想を入力してください（必須）</p>
+            <p style="margin-top:10px; font-size:0.85rem; color:var(--text-sub);">今の盛り上がりを🔥で教えてください（必須）</p>
             <div class="rating-input" style="margin:25px 0;">
                 <span onclick="setRating(1)" class="star">🔥</span><span onclick="setRating(2)" class="star">🔥</span><span onclick="setRating(3)" class="star">🔥</span><span onclick="setRating(4)" class="star">🔥</span><span onclick="setRating(5)" class="star">🔥</span>
             </div>
-            <textarea id="session-memo" placeholder="みんなに共有するメッセージを書いてください"></textarea>
+            <textarea id="session-memo" placeholder="感想があれば入力してください（任意）"></textarea>
             <button class="btn-primary" onclick="saveSessionRecord()">保存して公開する</button>
-            <p id="validation-error" style="color:var(--accent-red); font-size:0.8rem; margin-top:10px; display:none;">⚠️ 評価と感想を入力してください</p>
+            <p id="validation-error" style="color:var(--accent-red); font-size:0.8rem; margin-top:10px; display:none;">⚠️ 評価(🔥)を選択してください</p>
+        </div>
+    </section>
+
+    <section id="edit-profile-screen" class="screen" style="display:none">
+        <div class="card">
+            <h2 style="font-weight:900; margin-bottom:20px;">👤 プロフィール設定</h2>
+            <p style="font-size:0.85rem; color:var(--text-sub); margin-bottom:10px;">アプリ内で表示されるニックネームを設定します。</p>
+            <input type="text" id="user-nickname-input" class="text-input" placeholder="ニックネームを入力">
+            <button class="btn-primary" style="margin-top:20px;" onclick="saveNickname()">保存する</button>
+            <button class="btn-primary" style="margin-top:10px; background:#ccc; color:#333;" onclick="showScreen('welcome-screen')">キャンセル</button>
         </div>
     </section>
 
@@ -140,7 +161,7 @@
             <div class="guide-steps">
                 <div class="guide-item"><div class="guide-num">1</div><div class="guide-content"><h3>シーン選択</h3><p>状況に合ったお題を表示します。</p></div></div>
                 <div class="guide-item"><div class="guide-num">2</div><div class="guide-content"><h3>お題を話す</h3><p>タイマーに合わせて会話を楽しみます。</p></div></div>
-                <div class="guide-item"><div class="guide-num">3</div><div class="guide-content"><h3>記録する</h3><p>感想は「みんなのレポート」に公開され、全体の盛り上げランキングに反映されます。</p></div></div>
+                <div class="guide-item"><div class="guide-num">3</div><div class="guide-content"><h3>記録する</h3><p>感想は「みんなのレポート」に公開されます。ニックネーム設定で匿名投稿も可能です。</p></div></div>
             </div>
             <button class="btn-primary" style="margin-top:20px;" onclick="showScreen('welcome-screen')">戻る</button>
         </div>

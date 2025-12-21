@@ -1,6 +1,6 @@
 /**
  * ==========================================================================
- * EN-KAI プロジェクト - 共通ロジック (script.js v6.1)
+ * EN-KAI プロジェクト - 共通ロジック (script.js v6.2)
  * ==========================================================================
  */
 const rawTopics = {
@@ -12,6 +12,7 @@ const rawTopics = {
 let activeTopics = [], currentMode = "icebreak", currentIndex = 0, timerInterval = null;
 let initialTime = 60, timeLeft = 60, currentRating = 0;
 
+/* 画面制御 */
 function showScreen(id) {
     document.querySelectorAll('.screen').forEach(s => s.style.display = 'none');
     const target = document.getElementById(id);
@@ -31,6 +32,7 @@ function toggleDarkMode() {
     localStorage.setItem('dark-mode', isDark ? 'enabled' : 'disabled');
 }
 
+/* 宴会メイン */
 function onStartClicked() {
     const rbs = document.getElementsByName("mode");
     for (let rb of rbs) { if (rb.checked) { currentMode = rb.value; break; } }
@@ -49,6 +51,7 @@ function nextTopic() {
     else { handleFinishClick(); }
 }
 
+/* タイマー */
 function toggleTimer() {
     const btn = document.getElementById("timer-start-btn");
     if (timerInterval) { clearInterval(timerInterval); timerInterval = null; btn.innerText = "スタート"; }
@@ -77,6 +80,7 @@ function updateTimerDisplay() {
     }
 }
 
+/* 終了・保存ロジック (バリデーション修正済み) */
 function handleFinishClick() {
     const btn = document.getElementById('finish-trigger');
     if (btn.innerText === "🛑 宴会をお開きにする") { btn.innerText = "本当にお開きにしますか？"; }
@@ -97,17 +101,27 @@ function setRating(v) {
 
 async function saveSessionRecord() {
     const memo = document.getElementById('session-memo').value.trim();
-    if (currentRating === 0 || memo === "") {
+    // バリデーション：満足度(🔥)だけ必須に変更
+    if (currentRating === 0) {
         document.getElementById('validation-error').style.display = 'block';
         return;
     }
+
     const user = window.auth.currentUser;
+    let finalName = "ゲスト";
+
+    if(user) {
+        // Firestoreからニックネームを優先取得
+        const uDoc = await window.dbMethods.getDoc(window.dbMethods.doc(window.db, "users", user.uid));
+        finalName = uDoc.exists() ? uDoc.data().nickname : user.displayName;
+    }
+
     try {
         await window.dbMethods.addDoc(window.dbMethods.collection(window.db, "sessions"), {
             uid: user ? user.uid : "guest",
-            userName: user ? user.displayName : "ゲスト",
+            userName: finalName,
             rating: currentRating,
-            memo: memo,
+            memo: memo, // テキストは空でも保存
             timestamp: Date.now()
         });
         showToast();
@@ -117,6 +131,25 @@ async function saveSessionRecord() {
     } catch (e) { alert("保存に失敗しました。"); }
 }
 
+/* プロフィール設定 (ニックネーム保存) */
+async function saveNickname() {
+    const user = window.auth.currentUser;
+    const nick = document.getElementById('user-nickname-input').value.trim();
+    if(!user || !nick) return;
+
+    try {
+        await window.dbMethods.setDoc(window.dbMethods.doc(window.db, "users", user.uid), {
+            nickname: nick,
+            updatedAt: Date.now()
+        });
+        showToast();
+        // UI上の名前を即時更新
+        document.getElementById('user-status').innerText = nick + " さん";
+        showScreen('welcome-screen');
+    } catch (e) { alert("保存に失敗しました。"); }
+}
+
+/* レポート・統計表示 */
 async function showReport() {
     showScreen('report-screen');
     const listEl = document.getElementById('memo-list');
@@ -135,31 +168,22 @@ async function showReport() {
         snap.forEach(doc => {
             const data = doc.data();
             const date = new Date(data.timestamp).toLocaleString('ja-JP', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+            // メモが空の場合は表示を調整
+            const displayMemo = data.memo ? `<div class="memo-text">${data.memo}</div>` : "";
             html += `<div class="report-item">
                         <h4><span>👤 ${data.userName}</span> <span>🕒 ${date}</span></h4>
                         <div class="stars">${"🔥".repeat(data.rating)}</div>
-                        <div class="memo-text">${data.memo}</div>
+                        ${displayMemo}
                     </div>`;
         });
         listEl.innerHTML = html || "まだ誰もレポートを投稿していません。";
     } catch (e) { listEl.innerHTML = "データの取得に失敗しました。"; }
 }
 
+/* 認証 */
 async function handleLogin() {
-    try { 
-        await window.authMethods.signInWithPopup(window.auth, window.provider); 
-        showToast(); 
-    }
-    catch (e) { 
-        console.error("Login Error:", e);
-        if(e.code === 'auth/unauthorized-domain') {
-            alert("ログイン失敗: このURLはFirebaseで許可されていません。Firebaseコンソールの[Authorized domains]に現在のURLを追加してください。");
-        } else if(e.code === 'auth/operation-not-allowed') {
-            alert("ログイン失敗: Google認証が有効になっていません。");
-        } else {
-            alert("ログイン失敗: " + e.message);
-        }
-    }
+    try { await window.authMethods.signInWithPopup(window.auth, window.provider); showToast(); }
+    catch (e) { alert("ログイン失敗: " + e.message); }
 }
 
 async function handleLogout() { await window.authMethods.signOut(window.auth); location.reload(); }

@@ -1,5 +1,5 @@
 /* ==========================================================================
-   EN-KAI 究極統合スタイル (v6.1)
+   EN-KAI 究極統合スタイル (v6.2)
    ========================================================================== */
 @import url('https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@700;800&family=Noto+Sans+JP:wght@400;700;900&display=swap');
 
@@ -26,6 +26,7 @@ body.dark-mode {
 body { font-family: 'Noto Sans JP', sans-serif; background: var(--bg); color: var(--text-main); min-height: 100vh; overflow-x: hidden; }
 .container { max-width: 500px; margin: 0 auto; padding: 20px; width: 100%; }
 
+/* ヘッダー */
 .glass-header { position: sticky; top: 0; background: var(--card-bg); z-index: 100; border-bottom: 1px solid var(--card-border); height: 70px; display: flex; align-items: center; }
 .header-inner { width: 100%; max-width: 600px; margin: 0 auto; padding: 0 20px; display: flex; justify-content: space-between; align-items: center; }
 .logo { display: flex; align-items: center; gap: 12px; text-decoration: none; color: var(--text-main); font-weight: 900; }
@@ -34,6 +35,7 @@ body { font-family: 'Noto Sans JP', sans-serif; background: var(--bg); color: va
 .mode-toggle-btn { background: var(--secondary); border: none; width: 44px; height: 44px; border-radius: 12px; font-size: 1.2rem; cursor: pointer; }
 .menu-trigger { background: var(--primary); color: white; border: none; padding: 10px 18px; border-radius: 12px; font-weight: 800; cursor: pointer; }
 
+/* サイドメニュー */
 .side-menu { position: fixed; right: -300px; top: 0; width: 280px; height: 100%; background: var(--card-bg); z-index: 2001; transition: 0.4s; padding: 30px 20px; box-shadow: -10px 0 30px rgba(0,0,0,0.1); }
 .side-menu.active { right: 0; }
 .menu-links { display: flex; flex-direction: column; gap: 12px; }
@@ -41,25 +43,32 @@ body { font-family: 'Noto Sans JP', sans-serif; background: var(--bg); color: va
 .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 2000; }
 .overlay.active { display: block; }
 
+/* カード & ボタン */
 .card { background: var(--card-bg); border-radius: var(--radius-lg); padding: 25px; box-shadow: 0 12px 30px rgba(0,0,0,0.05); margin-bottom: 20px; border: 1px solid var(--card-border); }
 .btn-primary { width: 100%; background: var(--primary); color: white; border: none; padding: 18px; border-radius: var(--radius-md); font-weight: 900; cursor: pointer; box-shadow: 0 4px 12px rgba(80, 200, 120, 0.2); }
 .btn-finish { background: var(--accent-red) !important; margin-top: 15px; }
 
+/* 統計カード */
 .stats-card-personal { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white; border: none; margin-bottom: 12px; }
 .stats-card-global { background: #1e293b; color: white; border: none; margin-bottom: 20px; }
 .stats-label { font-size: 0.8rem; opacity: 0.8; margin-bottom: 10px; text-align: center; font-weight: 700; }
 .stats-flex { display: flex; justify-content: space-around; text-align: center; }
 .stats-val { font-size: 1.8rem; font-weight: 900; }
 
+/* レポートリスト */
 .report-list { display: flex; flex-direction: column; gap: 15px; }
 .report-item { background: var(--secondary); padding: 18px; border-radius: var(--radius-md); border-left: 4px solid var(--primary); }
 .report-item h4 { font-size: 0.8rem; color: var(--primary-dark); margin-bottom: 8px; font-weight: 900; display: flex; justify-content: space-between; }
 .report-item .memo-text { font-size: 1rem; line-height: 1.5; color: var(--text-main); margin: 8px 0; font-weight: 700; }
 
+/* フォーム & 入力 */
+.text-input { width: 100%; padding: 15px; border-radius: 12px; border: 1px solid var(--card-border); background: var(--secondary); font-family: inherit; font-size: 1rem; margin-top: 5px; color: var(--text-main); }
+textarea { width: 100%; height: 100px; border-radius: 15px; padding: 15px; border: 1px solid var(--card-border); resize: none; margin-top: 15px; font-family: inherit; }
+
+/* UI要素 */
 .mode-selector input { display: none; }
 .mode-label { display: block; padding: 18px; background: var(--secondary); border-radius: var(--radius-md); cursor: pointer; text-align: center; margin-bottom: 10px; border: 3px solid transparent; font-weight: 700; }
 .mode-selector input:checked + .mode-label { border-color: var(--primary); background: var(--primary-light); }
-textarea { width: 100%; height: 120px; border-radius: 15px; padding: 15px; border: 1px solid var(--card-border); resize: none; margin-top: 15px; font-family: inherit; }
 .topic-card { min-height: 220px; display: flex; align-items: center; justify-content: center; text-align: center; font-size: 1.8rem; font-weight: 800; color: var(--primary); background: var(--primary-light); border: 2px dashed var(--primary); border-radius: 20px; }
 #timer-display { font-size: 3.5rem; font-weight: 900; text-align: center; margin-bottom: 10px; }
 .timer-bar-bg { background: var(--secondary); height: 12px; border-radius: 6px; margin-bottom: 20px; overflow: hidden; }
