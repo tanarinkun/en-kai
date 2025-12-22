@@ -1,226 +1,391 @@
 /**
  * ==========================================================================
- * EN-KAI CORE SCRIPT (v12.0.0)
- * 開発者: たなりんくん / パートナー: Gemini
+ * EN-KAI CORE SCRIPT (v16.1.0)
+ * 修正：称号システム、アニメーション強化、プロフィール機能拡充
  * ==========================================================================
  */
 
-// --- データベース ---
-const topics = {
-    icebreak: ["初対面での鉄板ネタは？", "最近一番笑った出来事", "子供の頃の意外な夢", "自分を動物に例えるなら？", "得意料理（または好物）"],
-    casual: ["3億円当たったらどう隠す？", "明日地球が終わるなら何食べる？", "最近の個人的な重大ニュース", "誰にも言えない変な癖", "今の悩みを聞いてくれ！"],
-    business: ["仕事で最も嬉しかった瞬間", "尊敬するプロフェッショナル", "5年後の自分はどうなってる？", "今の業務のこだわり", "新人に伝えたい仕事の極意"]
-};
-const missions = ["全員を1人ずつ褒める", "語尾に『～だわさ』をつける", "最近買った高いものを白状", "1分間、右隣の人を尊敬する", "全力でかっこいいポーズ"];
+(function() {
+    console.log("System initializing...");
 
-// --- 状態管理 ---
-let state = {
-    mode: 'icebreak',
-    activeTopics: [],
-    currIdx: 0,
-    timer: null,
-    timeLeft: 60,
-    members: [],
-    rating: 0
-};
-
-// --- 初期化 & ナビゲーション ---
-window.nav = (id) => {
-    document.querySelectorAll('.screen').forEach(s => s.style.display = 'none');
-    document.getElementById(id).style.display = 'block';
-    if(document.getElementById('side-menu').classList.contains('active')) toggleMenu();
-    window.scrollTo({top: 0, behavior: 'smooth'});
-};
-
-window.toggleMenu = () => {
-    document.getElementById('side-menu').classList.toggle('active');
-    document.getElementById('overlay').classList.toggle('active');
-};
-
-window.toggleDark = () => {
-    document.body.classList.toggle('dark-mode');
-    localStorage.setItem('dark', document.body.classList.contains('dark-mode'));
-    toast(document.body.classList.contains('dark-mode') ? "Dark Mode ON" : "Light Mode ON");
-};
-
-// --- 設定制御 ---
-window.setMode = (mode, id) => {
-    state.mode = mode;
-    document.querySelectorAll('.mode-chip').forEach(c => c.classList.remove('active'));
-    document.getElementById(id).classList.add('active');
-};
-
-window.startEnkai = () => {
-    const nameVal = document.getElementById('names').value.trim();
-    if(!nameVal) { toast("メンバーを入力してください"); return; }
-    
-    state.members = nameVal.split(/[\s　]+/);
-    state.activeTopics = [...topics[state.mode]].sort(() => Math.random() - 0.5);
-    state.currIdx = 0;
-    
-    document.getElementById('slot-ui').style.display = document.getElementById('slot-sw').checked ? 'block' : 'none';
-    
-    nav('main-screen');
-    renderQ();
-    timerReset();
-};
-
-// --- メイン進行 ---
-function renderQ() {
-    document.getElementById('topic-disp').innerText = state.activeTopics[state.currIdx];
-    document.getElementById('q-count').innerText = `Q ${state.currIdx + 1} / ${state.activeTopics.length}`;
-    document.getElementById('fin-btn').innerText = "🛑 終了";
-}
-
-window.nextQ = () => {
-    if(state.currIdx < state.activeTopics.length - 1) {
-        state.currIdx++; renderQ(); timerReset();
-    } else {
-        finishCheck();
-    }
-};
-
-window.prevQ = () => {
-    if(state.currIdx > 0) { state.currIdx--; renderQ(); timerReset(); }
-};
-
-window.finishCheck = () => {
-    const btn = document.getElementById('fin-btn');
-    if(btn.innerText === "🛑 終了") {
-        btn.innerText = "本当にお開き？";
-        btn.style.borderColor = "var(--primary)";
-    } else {
-        nav('finish-screen');
-    }
-};
-
-// --- タイマーロジック ---
-window.timerToggle = () => {
-    const btn = document.getElementById('t-play');
-    if(state.timer) {
-        clearInterval(state.timer); state.timer = null; btn.innerText = "▶️";
-    } else {
-        btn.innerText = "⏸️";
-        state.timer = setInterval(() => {
-            if(state.timeLeft > 0) {
-                state.timeLeft--;
-                document.getElementById('timer-num').innerText = `00:${state.timeLeft.toString().padStart(2,'0')}`;
-                document.getElementById('progress-bar').style.width = (state.timeLeft/60)*100 + "%";
-            } else {
-                clearInterval(state.timer); state.timer = null; btn.innerText = "▶️";
-                toast("タイムアップ！⏰");
-            }
-        }, 1000);
-    }
-};
-
-window.timerReset = () => {
-    clearInterval(state.timer); state.timer = null;
-    state.timeLeft = 60;
-    document.getElementById('timer-num').innerText = "01:00";
-    document.getElementById('progress-bar').style.width = "100%";
-    document.getElementById('t-play').innerText = "▶️";
-};
-
-// --- スロットロジック (アニメーション強化) ---
-window.spin = () => {
-    const t = document.getElementById('s-target');
-    const k = document.getElementById('s-task');
-    let count = 0;
-    const itv = setInterval(() => {
-        t.innerText = state.members[Math.floor(Math.random() * state.members.length)];
-        k.innerText = missions[Math.floor(Math.random() * missions.length)];
-        if(++count > 15) clearInterval(itv);
-    }, 70);
-};
-
-// --- Firebase & レポート ---
-window.setRate = (v) => {
-    state.rating = v;
-    document.querySelectorAll('.fire-icon').forEach((f, i) => f.classList.toggle('active', i < v));
-};
-
-window.save = async () => {
-    if(state.rating === 0) { toast("ファイヤを選択してください"); return; }
-    try {
-        await window.fb.addDoc(window.fb.collection(window.db, "sessions"), {
-            rating: state.rating,
-            memo: document.getElementById('memo').value,
-            timestamp: Date.now()
-        });
-        toast("保存完了！");
-        setTimeout(() => location.reload(), 1000);
-    } catch(e) { toast("エラーが発生しました"); }
-};
-
-window.openReport = async () => {
-    nav('report-screen');
-    const list = document.getElementById('report-list');
-    list.innerHTML = "<div style='text-align:center; padding:50px;'>Loading...</div>";
-    
-    try {
-        const q = window.fb.query(window.fb.collection(window.db, "sessions"), window.fb.orderBy("timestamp", "desc"), window.fb.limit(10));
-        const snap = await window.fb.getDocs(q);
-        
-        let count = snap.size;
-        let totalF = 0;
-        let html = "";
-        
-        snap.forEach(doc => {
-            const d = doc.data();
-            totalF += d.rating;
-            html += `
-                <div class="report-item">
-                    <div style="display:flex; justify-content:space-between;">
-                        <span>${"🔥".repeat(d.rating)}</span>
-                        <small style="opacity:0.5;">${new Date(d.timestamp).toLocaleDateString()}</small>
-                    </div>
-                    <p style="margin:10px 0 0; font-size:0.9rem;">${d.memo || "楽しかった！"}</p>
-                </div>`;
-        });
-        
-        // 統計アニメーション (requestAnimationFrameによる簡易実装)
-        animateNum('total-s', count);
-        animateNum('total-f', totalF);
-        list.innerHTML = html || "まだレポートがありません。";
-    } catch(e) { list.innerHTML = "取得に失敗しました。"; }
-};
-
-function animateNum(id, target) {
-    let curr = 0;
-    const el = document.getElementById(id);
-    const step = () => {
-        curr += Math.ceil(target / 20);
-        if(curr >= target) { el.innerText = target; }
-        else { el.innerText = curr; requestAnimationFrame(step); }
+    const topics = {
+        icebreak: ["第一印象、お互いどう感じました？", "最近一番笑ったことを教えてください", "自分を家電に例えるなら何？", "好きな食べ物ベスト3は？", "最近ハマっている趣味"],
+        casual: ["3億円当たったら、まず何に使う？", "明日世界が終わるなら何食べる？", "ここだけの秘密を1つ公開！", "最近の個人的な大ニュース", "人生で一番の失敗談"],
+        business: ["仕事で最も達成感を感じる瞬間は？", "尊敬するリーダーの条件とは？", "5年後の自分はどうなっていたい？", "今の仕事を選んだ理由", "仕事中のリフレッシュ方法"]
     };
-    step();
-}
+    const missions = ["全員を1人ずつ褒める", "語尾に『～だぜ』をつける", "今の所持金を告白する", "全力でかっこいいポーズ", "スマホの待受画面を見せる"];
 
-// --- ユーティリティ ---
-function toast(m) {
-    const t = document.getElementById('toast');
-    t.innerText = m; t.classList.add('active');
-    setTimeout(() => t.classList.remove('active'), 3000);
-}
+    // 【②】日本語画面名
+    const pageTitlesJp = {
+        'welcome-screen': 'ホーム',
+        'start-screen': '宴会準備',
+        'main-screen': '宴会中',
+        'finish-screen': 'お開き',
+        'profile-screen': 'プロフィール',
+        'guide-screen': '使い方',
+        'report-screen': '宴会レポート',
+        'about-screen': '制作者'
+    };
 
-window.login = async () => {
-    try { await window.fb.signInWithPopup(window.auth, window.provider); toast("Welcome!"); } catch(e) { toast("Error"); }
-};
+    // 【⑦】通常称号データ定義
+    const titlesData = [
+        { count: 0, label: "新人幹事候補" },
+        { count: 1, label: "ビギナー幹事" },
+        { count: 3, label: "見習い幹事" },
+        { count: 5, label: "空気読み職人" },
+        { count: 10, label: "盛り上げ隊長" },
+        { count: 20, label: "宴会マスター" },
+        { count: 30, label: "伝説の幹事" }
+    ];
 
-window.logout = async () => {
-    if(confirm("ログアウトしますか？")) { await window.fb.signOut(window.auth); location.reload(); }
-};
+    let state = {
+        mode: 'icebreak',
+        activeTopics: [],
+        currIdx: 0,
+        members: [],
+        rating: 0,
+        userName: "ゲスト",
+        isLoggedIn: false,
+        partyCount: 0,
+        selectedTitle: "新人幹事候補",
+        specialTitle: "", // 期間限定称号
+        isSpecialTitleActive: false
+    };
 
-window.sendFb = () => {
-    const text = document.getElementById('fb-text').value;
-    if(!text) return;
-    toast("送信しました。ありがとう！");
-    document.getElementById('fb-text').value = "";
-    setTimeout(() => nav('welcome-screen'), 1000);
-};
+    // --- 【①】画面遷移 & 【②】タイトル更新 ---
+    window.nav = function(id) {
+        console.log("Navigating to:", id);
+        const screens = document.querySelectorAll('.screen');
+        
+        // 既存の画面を非表示にする
+        screens.forEach(s => s.style.display = 'none');
 
-// --- 起動 ---
-document.addEventListener('DOMContentLoaded', () => {
-    if(localStorage.getItem('dark') === 'true') document.body.classList.add('dark-mode');
-});
+        const target = document.getElementById(id);
+        if (target) {
+            target.style.display = 'block'; // CSSアニメーションが発火
+            const label = document.getElementById('current-page-name');
+            if(label) label.innerText = pageTitlesJp[id] || 'EN-KAI';
+        }
+        
+        closeAllModals();
+        window.scrollTo(0, 0);
+
+        // プロフィール画面ならデータ再読込
+        if (id === 'profile-screen') fetchUserStats();
+    };
+
+    // --- モーダル・サイドメニュー制御 ---
+    window.closeAllModals = function() {
+        document.getElementById('side-menu').classList.remove('active');
+        document.getElementById('overlay').classList.remove('active');
+        document.getElementById('confirm-modal').classList.remove('active');
+        document.getElementById('first-guide-modal').classList.remove('active');
+    };
+
+    window.toggleMenu = function() {
+        document.getElementById('side-menu').classList.toggle('active');
+        document.getElementById('overlay').classList.toggle('active');
+    };
+
+    // 【③】初回ガイド
+    function checkFirstVisit() {
+        if (!localStorage.getItem('enkai_visited_v2')) {
+            setTimeout(() => {
+                document.getElementById('first-guide-modal').classList.add('active');
+                document.getElementById('overlay').classList.add('active');
+            }, 800);
+        }
+    }
+
+    // 【③】ガイド終了後にホームへ遷移
+    window.closeFirstGuide = function() {
+        localStorage.setItem('enkai_visited_v2', 'true');
+        closeAllModals();
+        window.nav('welcome-screen');
+    };
+
+    // 【⑪】お開き確認モーダル表示
+    window.finishCheck = function() {
+        document.getElementById('confirm-modal').classList.add('active');
+        document.getElementById('overlay').classList.add('active');
+    };
+
+    // --- 【⑥】【⑦】【⑨】称号 & プロフィールシステム ---
+
+    async function fetchUserStats() {
+        if (!state.isLoggedIn || !window.fb) return;
+        
+        const countEl = document.getElementById('stat-count');
+        const selector = document.getElementById('title-selector');
+        
+        try {
+            // 開催数の取得
+            const q = window.fb.query(
+                window.fb.collection(window.db, "sessions"), 
+                window.fb.where("uid", "==", window.auth.currentUser.uid)
+            );
+            const snap = await window.fb.getDocs(q);
+            state.partyCount = snap.size;
+            countEl.innerText = state.partyCount;
+
+            // ユーザー設定の取得（選択中称号など）
+            const userDoc = await window.fb.getDoc(window.fb.doc(window.db, "users", window.auth.currentUser.uid));
+            if (userDoc.exists()) {
+                const data = userDoc.data();
+                state.selectedTitle = data.selectedTitle || "ビギナー幹事";
+                state.isSpecialTitleActive = data.isSpecialTitleActive || false;
+            }
+
+            // 【⑨】期間限定称号の判定
+            checkSpecialTitles();
+
+            // 称号セレクトボックスの更新（獲得済みのみ）
+            selector.innerHTML = "";
+            titlesData.forEach(t => {
+                if (state.partyCount >= t.count) {
+                    const opt = document.createElement('option');
+                    opt.value = t.label;
+                    opt.innerText = t.label;
+                    if (t.label === state.selectedTitle) opt.selected = true;
+                    selector.appendChild(opt);
+                }
+            });
+
+            updateBadgeUI();
+        } catch (e) { console.error(e); }
+    }
+
+    // 【⑨】期間限定称号ロジック
+    function checkSpecialTitles() {
+        const now = new Date();
+        const specialArea = document.getElementById('special-title-area');
+        state.specialTitle = "";
+
+        // 条件A: 12月
+        if (now.getMonth() === 11) {
+            state.specialTitle = "年末幹事王";
+        }
+        // 条件B: 連続3日（簡易的に当日開催歴がある場合など。本来は履歴走査が必要）
+        // ここでは12月称号を優先表示例とします
+
+        if (state.specialTitle) {
+            specialArea.style.display = 'block';
+            document.getElementById('special-title-name').innerText = "✨ " + state.specialTitle;
+            document.getElementById('special-title-sw').checked = state.isSpecialTitleActive;
+        } else {
+            specialArea.style.display = 'none';
+        }
+    }
+
+    // バッジUIの更新
+    function updateBadgeUI() {
+        const mainBadge = document.getElementById('p-main-badge');
+        const specBadge = document.getElementById('p-special-badge');
+        const sideBadge = document.getElementById('side-title-badge');
+
+        mainBadge.innerText = state.selectedTitle;
+        sideBadge.innerText = state.selectedTitle;
+        sideBadge.style.display = 'inline-block';
+
+        if (state.specialTitle && state.isSpecialTitleActive) {
+            specBadge.innerText = state.specialTitle;
+            specBadge.style.display = 'inline-block';
+        } else {
+            specBadge.style.display = 'none';
+        }
+    }
+
+    window.changeSelectedTitle = async function() {
+        const val = document.getElementById('title-selector').value;
+        state.selectedTitle = val;
+        updateBadgeUI();
+        saveUserConfig();
+    };
+
+    window.toggleSpecialTitle = function() {
+        state.isSpecialTitleActive = document.getElementById('special-title-sw').checked;
+        updateBadgeUI();
+        saveUserConfig();
+    };
+
+    async function saveUserConfig() {
+        if (!state.isLoggedIn) return;
+        await window.fb.setDoc(window.fb.doc(window.db, "users", window.auth.currentUser.uid), {
+            selectedTitle: state.selectedTitle,
+            isSpecialTitleActive: state.isSpecialTitleActive,
+            displayName: state.userName
+        }, { merge: true });
+    }
+
+    window.updateProfileName = function() {
+        if (!state.isLoggedIn) return;
+        state.userName = document.getElementById('display-name').value.trim() || "ゲスト";
+        document.getElementById('side-name-label').innerText = state.userName + " 様";
+        saveUserConfig();
+        toast("名前を保存しました");
+    };
+
+    // --- 宴会進行ロジック ---
+    window.setMode = function(mode, id) {
+        state.mode = mode;
+        document.querySelectorAll('.mode-chip').forEach(c => c.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+    };
+
+    window.toggleNameInput = function() {
+        document.getElementById('name-input-area').style.display = 
+            document.getElementById('slot-sw').checked ? 'block' : 'none';
+    };
+
+    window.startEnkai = function() {
+        const isSlot = document.getElementById('slot-sw').checked;
+        const names = document.getElementById('names').value.trim();
+        if (isSlot && !names) { toast("メンバー名を入力してください"); return; }
+        
+        state.members = names ? names.split(/[\s　]+/) : ["参加者"];
+        state.activeTopics = topics[state.mode].slice().sort(() => Math.random() - 0.5);
+        state.currIdx = 0;
+        
+        document.getElementById('slot-ui').style.display = isSlot ? 'block' : 'none';
+        window.nav('main-screen');
+        renderQ();
+    };
+
+    function renderQ() {
+        document.getElementById('topic-disp').innerText = state.activeTopics[state.currIdx];
+        document.getElementById('q-count').innerText = `Progress ${state.currIdx + 1} / ${state.activeTopics.length}`;
+    }
+
+    window.nextQ = function() {
+        if (state.currIdx < state.activeTopics.length - 1) { 
+            state.currIdx++; renderQ(); 
+        } else { window.nav('finish-screen'); }
+    };
+
+    window.prevQ = function() { if (state.currIdx > 0) { state.currIdx--; renderQ(); } };
+
+    window.spin = function() {
+        const t = document.getElementById('s-target'), k = document.getElementById('s-task');
+        let c = 0;
+        const itv = setInterval(() => {
+            t.innerText = state.members[Math.floor(Math.random() * state.members.length)];
+            k.innerText = missions[Math.floor(Math.random() * missions.length)];
+            if (++c > 15) clearInterval(itv);
+        }, 60);
+    };
+
+    window.setRate = function(v) {
+        state.rating = v;
+        document.querySelectorAll('.fire-icon').forEach((icon, i) => icon.classList.toggle('active', i < v));
+    };
+
+    // 【⑩】レポート保存時に称号も含める
+    window.save = async function() {
+        if (state.rating === 0) { toast("評価を選んでください"); return; }
+        if (!window.fb) { toast("保存エラー"); return; }
+        try {
+            await window.fb.addDoc(window.fb.collection(window.db, "sessions"), {
+                uid: window.auth.currentUser ? window.auth.currentUser.uid : "guest",
+                partyName: document.getElementById('party-name').value || "無題の宴",
+                userName: state.userName, 
+                rating: state.rating,
+                memo: document.getElementById('memo').value, 
+                timestamp: Date.now(),
+                title: state.selectedTitle, // 保存時点の称号
+                specialTitle: state.isSpecialTitleActive ? state.specialTitle : ""
+            });
+            toast("宴会を記録しました！✨");
+            setTimeout(() => location.reload(), 1200);
+        } catch(e) { toast("保存に失敗しました"); }
+    };
+
+    window.openReport = async function() {
+        window.nav('report-screen');
+        const list = document.getElementById('report-list');
+        list.innerHTML = "<p style='text-align:center;'>読込中...</p>";
+        try {
+            const q = window.fb.query(window.fb.collection(window.db, "sessions"), window.fb.orderBy("timestamp", "desc"), window.fb.limit(15));
+            const snap = await window.fb.getDocs(q);
+            let html = "";
+            snap.forEach(doc => {
+                const d = doc.data();
+                const badgeHtml = d.title ? `<span class="badge badge-normal" style="font-size:0.6rem;">${d.title}</span>` : "";
+                const specialHtml = d.specialTitle ? `<span class="badge badge-special" style="font-size:0.6rem;">${d.specialTitle}</span>` : "";
+                
+                html += `<div class="card" style="padding:15px; margin-bottom:12px;">
+                    <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                        <div>
+                            <b>${d.partyName}</b><br>
+                            <small>${d.userName} 様 ${badgeHtml}${specialHtml}</small>
+                        </div>
+                        <div style="font-size:0.8rem;">${"🔥".repeat(d.rating)}</div>
+                    </div>
+                    <p style="margin:8px 0 0; font-size:0.85rem; color:var(--text-sub); border-top:1px solid var(--border); padding-top:8px;">${d.memo || ""}</p>
+                </div>`;
+            });
+            list.innerHTML = html || "まだ記録がありません";
+        } catch(e) { list.innerHTML = "読込に失敗しました"; }
+    };
+
+    // 認証
+    window.login = async function() { 
+        if (!window.fb) return;
+        try { await window.fb.signInWithPopup(window.auth, new window.fb.GoogleAuthProvider()); } catch(e) { toast("ログイン失敗"); } 
+    };
+
+    window.logout = async function() { 
+        if (confirm("ログアウトしますか？")) { await window.fb.signOut(window.auth); location.reload(); } 
+    };
+
+    function toast(m) {
+        const t = document.getElementById('toast');
+        t.innerText = m; t.classList.add('active');
+        setTimeout(() => t.classList.remove('active'), 3000);
+    }
+
+    window.toggleDark = function() {
+        document.body.classList.toggle('dark-mode');
+        localStorage.setItem('dark', document.body.classList.contains('dark-mode'));
+    };
+
+    // --- 起動処理 ---
+    document.addEventListener('DOMContentLoaded', () => {
+        if (localStorage.getItem('dark') === 'true') document.body.classList.add('dark-mode');
+        checkFirstVisit();
+        
+        const checkAuth = setInterval(() => {
+            if (window.fb && window.auth) {
+                clearInterval(checkAuth);
+                window.fb.onAuthStateChanged(window.auth, user => {
+                    const lBtn = document.getElementById('login-btn'), loBtn = document.getElementById('logout-btn');
+                    const nInp = document.getElementById('display-name'), prompt = document.getElementById('login-prompt');
+                    const pLBtn = document.getElementById('p-login-btn'), sIcon = document.getElementById('side-user-icon');
+                    const pIconSrc = document.getElementById('p-img-src'), sIconSrc = document.getElementById('side-img-src');
+                    const tSelector = document.getElementById('title-selector');
+
+                    if (user) {
+                        state.isLoggedIn = true;
+                        state.userName = user.displayName;
+                        lBtn.style.display = 'none'; loBtn.style.display = 'block';
+                        nInp.disabled = false; prompt.style.display = 'none'; pLBtn.style.display = 'none';
+                        tSelector.disabled = false;
+                        if(user.photoURL) {
+                            sIcon.style.display = 'block'; pIconSrc.style.display = 'block';
+                            sIconSrc.src = user.photoURL; pIconSrc.src = user.photoURL;
+                        }
+                    } else {
+                        state.isLoggedIn = false;
+                        state.userName = "ゲスト";
+                        lBtn.style.display = 'block'; loBtn.style.display = 'none';
+                        nInp.disabled = true; prompt.style.display = 'block'; pLBtn.style.display = 'block';
+                        tSelector.disabled = true;
+                        sIcon.style.display = 'none'; pIconSrc.style.display = 'none';
+                    }
+                    nInp.value = state.userName;
+                    document.getElementById('side-name-label').innerText = state.userName + " 様";
+                    fetchUserStats();
+                });
+            }
+        }, 200);
+    });
+})();
