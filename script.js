@@ -1,12 +1,12 @@
 /**
  * ==========================================================================
- * EN-KAI CORE SCRIPT (v16.1.0)
- * 修正：称号システム、アニメーション強化、プロフィール機能拡充
+ * EN-KAI CORE SCRIPT (v16.2.0)
+ * 修正：初期表示バグ修正、感謝ポップアップ、プライバシー保護アイコン機能
  * ==========================================================================
  */
 
 (function() {
-    console.log("System initializing...");
+    console.log("System initializing v16.2.0...");
 
     const topics = {
         icebreak: ["第一印象、お互いどう感じました？", "最近一番笑ったことを教えてください", "自分を家電に例えるなら何？", "好きな食べ物ベスト3は？", "最近ハマっている趣味"],
@@ -15,7 +15,7 @@
     };
     const missions = ["全員を1人ずつ褒める", "語尾に『～だぜ』をつける", "今の所持金を告白する", "全力でかっこいいポーズ", "スマホの待受画面を見せる"];
 
-    // 【②】日本語画面名
+    // 画面タイトル定義
     const pageTitlesJp = {
         'welcome-screen': 'ホーム',
         'start-screen': '宴会準備',
@@ -27,7 +27,7 @@
         'about-screen': '制作者'
     };
 
-    // 【⑦】通常称号データ定義
+    // 称号データ
     const titlesData = [
         { count: 0, label: "新人幹事候補" },
         { count: 1, label: "ビギナー幹事" },
@@ -38,6 +38,16 @@
         { count: 30, label: "伝説の幹事" }
     ];
 
+    // アイコン用カラーパレット（プライバシー重視）
+    const iconColors = [
+        { name: 'Blue', code: '#3498db' },
+        { name: 'Green', code: '#2ecc71' },
+        { name: 'Purple', code: '#9b59b6' },
+        { name: 'Orange', code: '#e67e22' },
+        { name: 'Red', code: '#e74c3c' },
+        { name: 'Dark', code: '#34495e' }
+    ];
+
     let state = {
         mode: 'icebreak',
         activeTopics: [],
@@ -45,41 +55,60 @@
         members: [],
         rating: 0,
         userName: "ゲスト",
+        userColor: "#bdc3c7", // デフォルト：グレー
         isLoggedIn: false,
         partyCount: 0,
         selectedTitle: "新人幹事候補",
-        specialTitle: "", // 期間限定称号
+        specialTitle: "", 
         isSpecialTitleActive: false
     };
 
-    // --- 【①】画面遷移 & 【②】タイトル更新 ---
+    // --- 【必須修正①】画面遷移 & 初期表示保証 ---
     window.nav = function(id) {
         console.log("Navigating to:", id);
         const screens = document.querySelectorAll('.screen');
         
-        // 既存の画面を非表示にする
-        screens.forEach(s => s.style.display = 'none');
+        // 全画面を非表示
+        screens.forEach(s => {
+            s.style.display = 'none';
+            s.classList.remove('active'); // アニメーション用クラスがあれば除去
+        });
 
         const target = document.getElementById(id);
         if (target) {
-            target.style.display = 'block'; // CSSアニメーションが発火
+            target.style.display = 'block'; 
+            // タイトル更新
             const label = document.getElementById('current-page-name');
             if(label) label.innerText = pageTitlesJp[id] || 'EN-KAI';
+        } else {
+            // 指定のIDがない場合はwelcomeを強制
+            const welcome = document.getElementById('welcome-screen');
+            if(welcome) welcome.style.display = 'block';
         }
         
         closeAllModals();
         window.scrollTo(0, 0);
 
         // プロフィール画面ならデータ再読込
-        if (id === 'profile-screen') fetchUserStats();
+        if (id === 'profile-screen') {
+            fetchUserStats();
+            renderColorPicker(); // 【修正③】カラー選択肢を表示
+        }
     };
 
     // --- モーダル・サイドメニュー制御 ---
     window.closeAllModals = function() {
-        document.getElementById('side-menu').classList.remove('active');
-        document.getElementById('overlay').classList.remove('active');
-        document.getElementById('confirm-modal').classList.remove('active');
-        document.getElementById('first-guide-modal').classList.remove('active');
+        const sideMenu = document.getElementById('side-menu');
+        const overlay = document.getElementById('overlay');
+        const confirmModal = document.getElementById('confirm-modal');
+        const guideModal = document.getElementById('first-guide-modal');
+        const thanksModal = document.getElementById('thanks-modal'); // 感謝ポップアップ用
+
+        if(sideMenu) sideMenu.classList.remove('active');
+        if(overlay) overlay.classList.remove('active');
+        if(confirmModal) confirmModal.classList.remove('active');
+        if(guideModal) guideModal.classList.remove('active');
+        if(thanksModal) thanksModal.classList.remove('active');
     };
 
     window.toggleMenu = function() {
@@ -87,30 +116,88 @@
         document.getElementById('overlay').classList.toggle('active');
     };
 
-    // 【③】初回ガイド
+    // 初回ガイド
     function checkFirstVisit() {
         if (!localStorage.getItem('enkai_visited_v2')) {
             setTimeout(() => {
-                document.getElementById('first-guide-modal').classList.add('active');
-                document.getElementById('overlay').classList.add('active');
+                const guide = document.getElementById('first-guide-modal');
+                if(guide) {
+                    guide.classList.add('active');
+                    document.getElementById('overlay').classList.add('active');
+                }
             }, 800);
         }
     }
 
-    // 【③】ガイド終了後にホームへ遷移
     window.closeFirstGuide = function() {
         localStorage.setItem('enkai_visited_v2', 'true');
         closeAllModals();
         window.nav('welcome-screen');
     };
 
-    // 【⑪】お開き確認モーダル表示
     window.finishCheck = function() {
         document.getElementById('confirm-modal').classList.add('active');
         document.getElementById('overlay').classList.add('active');
     };
 
-    // --- 【⑥】【⑦】【⑨】称号 & プロフィールシステム ---
+    // --- 【必須修正③】プロフィール & カラーシステム ---
+
+    // カラーピッカーの描画
+    function renderColorPicker() {
+        const container = document.getElementById('color-picker-container');
+        if (!container) return;
+        
+        container.innerHTML = "";
+        iconColors.forEach(color => {
+            const btn = document.createElement('div');
+            btn.className = 'color-dot';
+            btn.style.backgroundColor = color.code;
+            btn.style.width = '30px';
+            btn.style.height = '30px';
+            btn.style.borderRadius = '50%';
+            btn.style.display = 'inline-block';
+            btn.style.margin = '5px';
+            btn.style.cursor = 'pointer';
+            btn.style.border = (state.userColor === color.code) ? '3px solid var(--primary)' : '2px solid transparent';
+            
+            btn.onclick = () => selectColor(color.code);
+            container.appendChild(btn);
+        });
+    }
+
+    async function selectColor(code) {
+        state.userColor = code;
+        updateIconUI();
+        renderColorPicker();
+        await saveUserConfig();
+        toast("アイコン色を変更しました");
+    }
+
+    // アイコンの表示更新（画像URLは一切使わず、背景色で表現）
+    function updateIconUI() {
+        const sideIcon = document.getElementById('side-user-icon');
+        const profileIcon = document.getElementById('p-user-icon'); // プロフィール側のコンテナ
+
+        // サイドメニューのアイコン（imgタグではなくdiv等で背景色をつける運用を想定）
+        const sImg = document.getElementById('side-img-src');
+        const pImg = document.getElementById('p-img-src');
+
+        if (state.isLoggedIn) {
+            if(sImg) {
+                sImg.src = ""; // Google画像はクリア
+                sImg.style.backgroundColor = state.userColor;
+                sImg.style.borderRadius = "50%";
+            }
+            if(pImg) {
+                pImg.src = ""; // Google画像はクリア
+                pImg.style.backgroundColor = state.userColor;
+                pImg.style.borderRadius = "50%";
+            }
+        } else {
+            if(sImg) sImg.style.backgroundColor = "#bdc3c7";
+            if(pImg) pImg.style.backgroundColor = "#bdc3c7";
+        }
+    }
 
     async function fetchUserStats() {
         if (!state.isLoggedIn || !window.fb) return;
@@ -126,71 +213,72 @@
             );
             const snap = await window.fb.getDocs(q);
             state.partyCount = snap.size;
-            countEl.innerText = state.partyCount;
+            if(countEl) countEl.innerText = state.partyCount;
 
-            // ユーザー設定の取得（選択中称号など）
+            // ユーザー設定の取得（選択中称号、カラー）
             const userDoc = await window.fb.getDoc(window.fb.doc(window.db, "users", window.auth.currentUser.uid));
             if (userDoc.exists()) {
                 const data = userDoc.data();
                 state.selectedTitle = data.selectedTitle || "ビギナー幹事";
                 state.isSpecialTitleActive = data.isSpecialTitleActive || false;
+                state.userColor = data.userColor || "#3498db";
+                state.userName = data.displayName || window.auth.currentUser.displayName || "名無し幹事";
             }
 
-            // 【⑨】期間限定称号の判定
             checkSpecialTitles();
 
-            // 称号セレクトボックスの更新（獲得済みのみ）
-            selector.innerHTML = "";
-            titlesData.forEach(t => {
-                if (state.partyCount >= t.count) {
-                    const opt = document.createElement('option');
-                    opt.value = t.label;
-                    opt.innerText = t.label;
-                    if (t.label === state.selectedTitle) opt.selected = true;
-                    selector.appendChild(opt);
-                }
-            });
+            // 称号セレクトボックス更新
+            if(selector) {
+                selector.innerHTML = "";
+                titlesData.forEach(t => {
+                    if (state.partyCount >= t.count) {
+                        const opt = document.createElement('option');
+                        opt.value = t.label;
+                        opt.innerText = t.label;
+                        if (t.label === state.selectedTitle) opt.selected = true;
+                        selector.appendChild(opt);
+                    }
+                });
+            }
 
             updateBadgeUI();
-        } catch (e) { console.error(e); }
+            updateIconUI();
+        } catch (e) { console.error("Error fetching stats:", e); }
     }
 
-    // 【⑨】期間限定称号ロジック
     function checkSpecialTitles() {
         const now = new Date();
         const specialArea = document.getElementById('special-title-area');
         state.specialTitle = "";
 
-        // 条件A: 12月
         if (now.getMonth() === 11) {
             state.specialTitle = "年末幹事王";
         }
-        // 条件B: 連続3日（簡易的に当日開催歴がある場合など。本来は履歴走査が必要）
-        // ここでは12月称号を優先表示例とします
 
-        if (state.specialTitle) {
+        if (state.specialTitle && specialArea) {
             specialArea.style.display = 'block';
             document.getElementById('special-title-name').innerText = "✨ " + state.specialTitle;
             document.getElementById('special-title-sw').checked = state.isSpecialTitleActive;
-        } else {
+        } else if(specialArea) {
             specialArea.style.display = 'none';
         }
     }
 
-    // バッジUIの更新
     function updateBadgeUI() {
         const mainBadge = document.getElementById('p-main-badge');
         const specBadge = document.getElementById('p-special-badge');
         const sideBadge = document.getElementById('side-title-badge');
 
-        mainBadge.innerText = state.selectedTitle;
-        sideBadge.innerText = state.selectedTitle;
-        sideBadge.style.display = 'inline-block';
+        if(mainBadge) mainBadge.innerText = state.selectedTitle;
+        if(sideBadge) {
+            sideBadge.innerText = state.selectedTitle;
+            sideBadge.style.display = 'inline-block';
+        }
 
-        if (state.specialTitle && state.isSpecialTitleActive) {
+        if (state.specialTitle && state.isSpecialTitleActive && specBadge) {
             specBadge.innerText = state.specialTitle;
             specBadge.style.display = 'inline-block';
-        } else {
+        } else if(specBadge) {
             specBadge.style.display = 'none';
         }
     }
@@ -213,7 +301,8 @@
         await window.fb.setDoc(window.fb.doc(window.db, "users", window.auth.currentUser.uid), {
             selectedTitle: state.selectedTitle,
             isSpecialTitleActive: state.isSpecialTitleActive,
-            displayName: state.userName
+            displayName: state.userName,
+            userColor: state.userColor // カラーをFirestoreに保存
         }, { merge: true });
     }
 
@@ -229,31 +318,37 @@
     window.setMode = function(mode, id) {
         state.mode = mode;
         document.querySelectorAll('.mode-chip').forEach(c => c.classList.remove('active'));
-        document.getElementById(id).classList.add('active');
+        const chip = document.getElementById(id);
+        if(chip) chip.classList.add('active');
     };
 
     window.toggleNameInput = function() {
-        document.getElementById('name-input-area').style.display = 
-            document.getElementById('slot-sw').checked ? 'block' : 'none';
+        const area = document.getElementById('name-input-area');
+        const sw = document.getElementById('slot-sw');
+        if(area && sw) area.style.display = sw.checked ? 'block' : 'none';
     };
 
     window.startEnkai = function() {
         const isSlot = document.getElementById('slot-sw').checked;
-        const names = document.getElementById('names').value.trim();
+        const namesInp = document.getElementById('names');
+        const names = namesInp ? namesInp.value.trim() : "";
         if (isSlot && !names) { toast("メンバー名を入力してください"); return; }
         
         state.members = names ? names.split(/[\s　]+/) : ["参加者"];
         state.activeTopics = topics[state.mode].slice().sort(() => Math.random() - 0.5);
         state.currIdx = 0;
         
-        document.getElementById('slot-ui').style.display = isSlot ? 'block' : 'none';
+        const slotUi = document.getElementById('slot-ui');
+        if(slotUi) slotUi.style.display = isSlot ? 'block' : 'none';
         window.nav('main-screen');
         renderQ();
     };
 
     function renderQ() {
-        document.getElementById('topic-disp').innerText = state.activeTopics[state.currIdx];
-        document.getElementById('q-count').innerText = `Progress ${state.currIdx + 1} / ${state.activeTopics.length}`;
+        const disp = document.getElementById('topic-disp');
+        const count = document.getElementById('q-count');
+        if(disp) disp.innerText = state.activeTopics[state.currIdx];
+        if(count) count.innerText = `Progress ${state.currIdx + 1} / ${state.activeTopics.length}`;
     }
 
     window.nextQ = function() {
@@ -266,6 +361,7 @@
 
     window.spin = function() {
         const t = document.getElementById('s-target'), k = document.getElementById('s-task');
+        if(!t || !k) return;
         let c = 0;
         const itv = setInterval(() => {
             t.innerText = state.members[Math.floor(Math.random() * state.members.length)];
@@ -279,10 +375,15 @@
         document.querySelectorAll('.fire-icon').forEach((icon, i) => icon.classList.toggle('active', i < v));
     };
 
-    // 【⑩】レポート保存時に称号も含める
+    // --- 【必須修正②】レポート保存 & 感謝メッセージ ---
     window.save = async function() {
         if (state.rating === 0) { toast("評価を選んでください"); return; }
         if (!window.fb) { toast("保存エラー"); return; }
+        
+        // 保存ボタンを一時無効化
+        const btn = document.querySelector('.btn-save');
+        if(btn) btn.disabled = true;
+
         try {
             await window.fb.addDoc(window.fb.collection(window.db, "sessions"), {
                 uid: window.auth.currentUser ? window.auth.currentUser.uid : "guest",
@@ -291,17 +392,54 @@
                 rating: state.rating,
                 memo: document.getElementById('memo').value, 
                 timestamp: Date.now(),
-                title: state.selectedTitle, // 保存時点の称号
+                title: state.selectedTitle,
+                userColor: state.userColor, // アイコン色も保存
                 specialTitle: state.isSpecialTitleActive ? state.specialTitle : ""
             });
-            toast("宴会を記録しました！✨");
-            setTimeout(() => location.reload(), 1200);
-        } catch(e) { toast("保存に失敗しました"); }
+
+            // 感謝ポップアップの表示
+            showThanksModal();
+
+        } catch(e) { 
+            console.error(e);
+            toast("保存に失敗しました"); 
+            if(btn) btn.disabled = false;
+        }
     };
+
+    // 感謝モーダルの制御
+    function showThanksModal() {
+        const modal = document.getElementById('thanks-modal') || createThanksModal();
+        modal.classList.add('active');
+        document.getElementById('overlay').classList.add('active');
+        
+        // 3秒後に自動的にホームに戻る（またはリロード）
+        setTimeout(() => {
+            location.reload(); // 状態リセットのためリロードを推奨
+        }, 3500);
+    }
+
+    function createThanksModal() {
+        // もしHTMLにない場合に動的生成
+        const m = document.createElement('div');
+        m.id = 'thanks-modal';
+        m.className = 'modal';
+        m.style.cssText = "position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:var(--bg-card); padding:30px; border-radius:15px; z-index:2000; text-align:center; box-shadow:0 10px 30px rgba(0,0,0,0.3); display:none;";
+        m.innerHTML = `
+            <div style="font-size:3rem; margin-bottom:15px;">✨</div>
+            <h3 style="margin-bottom:10px;">ご利用ありがとうございます！</h3>
+            <p style="color:var(--text-sub);">またのご利用をお待ちしています。</p>
+            <p style="font-size:0.7rem; margin-top:20px; opacity:0.6;">間もなくホームに戻ります...</p>
+        `;
+        document.body.appendChild(m);
+        m.classList.add = function(c) { if(c==='active') m.style.display = 'block'; };
+        return m;
+    }
 
     window.openReport = async function() {
         window.nav('report-screen');
         const list = document.getElementById('report-list');
+        if(!list) return;
         list.innerHTML = "<p style='text-align:center;'>読込中...</p>";
         try {
             const q = window.fb.query(window.fb.collection(window.db, "sessions"), window.fb.orderBy("timestamp", "desc"), window.fb.limit(15));
@@ -311,12 +449,16 @@
                 const d = doc.data();
                 const badgeHtml = d.title ? `<span class="badge badge-normal" style="font-size:0.6rem;">${d.title}</span>` : "";
                 const specialHtml = d.specialTitle ? `<span class="badge badge-special" style="font-size:0.6rem;">${d.specialTitle}</span>` : "";
+                const userColor = d.userColor || "#bdc3c7";
                 
                 html += `<div class="card" style="padding:15px; margin-bottom:12px;">
                     <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-                        <div>
-                            <b>${d.partyName}</b><br>
-                            <small>${d.userName} 様 ${badgeHtml}${specialHtml}</small>
+                        <div style="display:flex; gap:10px;">
+                            <div style="width:35px; height:35px; border-radius:50%; background:${userColor}; flex-shrink:0;"></div>
+                            <div>
+                                <b>${d.partyName}</b><br>
+                                <small>${d.userName} 様 ${badgeHtml}${specialHtml}</small>
+                            </div>
                         </div>
                         <div style="font-size:0.8rem;">${"🔥".repeat(d.rating)}</div>
                     </div>
@@ -330,15 +472,23 @@
     // 認証
     window.login = async function() { 
         if (!window.fb) return;
-        try { await window.fb.signInWithPopup(window.auth, new window.fb.GoogleAuthProvider()); } catch(e) { toast("ログイン失敗"); } 
+        try { 
+            await window.fb.signInWithPopup(window.auth, new window.fb.GoogleAuthProvider()); 
+            // ログイン後のリロードで初期化
+            location.reload();
+        } catch(e) { toast("ログイン失敗"); } 
     };
 
     window.logout = async function() { 
-        if (confirm("ログアウトしますか？")) { await window.fb.signOut(window.auth); location.reload(); } 
+        if (confirm("ログアウトしますか？")) { 
+            await window.fb.signOut(window.auth); 
+            location.reload(); 
+        } 
     };
 
     function toast(m) {
         const t = document.getElementById('toast');
+        if(!t) return;
         t.innerText = m; t.classList.add('active');
         setTimeout(() => t.classList.remove('active'), 3000);
     }
@@ -348,44 +498,69 @@
         localStorage.setItem('dark', document.body.classList.contains('dark-mode'));
     };
 
-    // --- 起動処理 ---
+    // --- 【必須修正①】起動・認証ハンドリング ---
     document.addEventListener('DOMContentLoaded', () => {
+        console.log("DOM loaded.");
         if (localStorage.getItem('dark') === 'true') document.body.classList.add('dark-mode');
+        
+        // 1. 最初に必ず初期画面を表示 ( nav()が呼ばれない空白バグ対策 )
+        window.nav('welcome-screen');
         checkFirstVisit();
         
         const checkAuth = setInterval(() => {
             if (window.fb && window.auth) {
                 clearInterval(checkAuth);
-                window.fb.onAuthStateChanged(window.auth, user => {
+                window.fb.onAuthStateChanged(window.auth, async (user) => {
                     const lBtn = document.getElementById('login-btn'), loBtn = document.getElementById('logout-btn');
                     const nInp = document.getElementById('display-name'), prompt = document.getElementById('login-prompt');
                     const pLBtn = document.getElementById('p-login-btn'), sIcon = document.getElementById('side-user-icon');
-                    const pIconSrc = document.getElementById('p-img-src'), sIconSrc = document.getElementById('side-img-src');
                     const tSelector = document.getElementById('title-selector');
 
                     if (user) {
                         state.isLoggedIn = true;
-                        state.userName = user.displayName;
-                        lBtn.style.display = 'none'; loBtn.style.display = 'block';
-                        nInp.disabled = false; prompt.style.display = 'none'; pLBtn.style.display = 'none';
-                        tSelector.disabled = false;
-                        if(user.photoURL) {
-                            sIcon.style.display = 'block'; pIconSrc.style.display = 'block';
-                            sIconSrc.src = user.photoURL; pIconSrc.src = user.photoURL;
-                        }
+                        // Googleからの情報は初期値としてのみ使用（その後はFirestore優先）
+                        state.userName = user.displayName || "名無し幹事";
+                        
+                        if(lBtn) lBtn.style.display = 'none'; 
+                        if(loBtn) loBtn.style.display = 'block';
+                        if(nInp) nInp.disabled = false; 
+                        if(prompt) prompt.style.display = 'none'; 
+                        if(pLBtn) pLBtn.style.display = 'none';
+                        if(tSelector) tSelector.disabled = false;
+                        if(sIcon) sIcon.style.display = 'block';
+
+                        // ユーザーデータを取得して反映
+                        await fetchUserStats();
                     } else {
                         state.isLoggedIn = false;
                         state.userName = "ゲスト";
-                        lBtn.style.display = 'block'; loBtn.style.display = 'none';
-                        nInp.disabled = true; prompt.style.display = 'block'; pLBtn.style.display = 'block';
-                        tSelector.disabled = true;
-                        sIcon.style.display = 'none'; pIconSrc.style.display = 'none';
+                        state.userColor = "#bdc3c7";
+                        
+                        if(lBtn) lBtn.style.display = 'block'; 
+                        if(loBtn) loBtn.style.display = 'none';
+                        if(nInp) nInp.disabled = true; 
+                        if(prompt) prompt.style.display = 'block'; 
+                        if(pLBtn) pLBtn.style.display = 'block';
+                        if(tSelector) tSelector.disabled = true;
+                        if(sIcon) sIcon.style.display = 'none';
                     }
-                    nInp.value = state.userName;
-                    document.getElementById('side-name-label').innerText = state.userName + " 様";
-                    fetchUserStats();
+                    
+                    if(nInp) nInp.value = state.userName;
+                    const nameLabel = document.getElementById('side-name-label');
+                    if(nameLabel) nameLabel.innerText = state.userName + " 様";
+                    
+                    updateIconUI();
                 });
             }
         }, 200);
+
+        // 予備：万が一の空白回避のため2秒後にもう一度チェック
+        setTimeout(() => {
+            const visibleScreens = Array.from(document.querySelectorAll('.screen')).filter(s => s.style.display === 'block');
+            if (visibleScreens.length === 0) {
+                console.warn("Screen recovery triggered");
+                window.nav('welcome-screen');
+            }
+        }, 2000);
     });
 })();

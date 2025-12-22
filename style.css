@@ -15,6 +15,13 @@
     --radius: 20px;
     --transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     --special: #f59e0b;
+    
+    /* アイコンカラー定義 */
+    --icon-blue: #3b82f6;
+    --icon-green: #10b981;
+    --icon-purple: #a855f7;
+    --icon-orange: #f97316;
+    --icon-guest: #cbd5e1;
 }
 
 body.dark-mode {
@@ -26,7 +33,7 @@ body.dark-mode {
     --shadow: 0 15px 40px -10px rgba(0, 0, 0, 0.4);
 }
 
-/* 【①】アニメーション定義 */
+/* アニメーション定義 */
 @keyframes screenIn { 
     from { opacity: 0; transform: translateY(12px); } 
     to { opacity: 1; transform: translateY(0); } 
@@ -47,10 +54,32 @@ body { font-family: 'Noto Sans JP', sans-serif; background-color: var(--bg); col
 
 .card { background: var(--card); border-radius: 28px; padding: 25px; margin-bottom: 20px; border: 1px solid var(--border); box-shadow: var(--shadow); position: relative; }
 
-/* 【⑧】称号バッジスタイル */
+/* 称号バッジスタイル */
 .badge { display: inline-block; padding: 4px 12px; border-radius: 50px; font-size: 0.75rem; font-weight: 900; margin: 2px; text-transform: uppercase; }
 .badge-normal { background: var(--primary); color: white; box-shadow: 0 4px 10px var(--primary-glow); }
 .badge-special { background: var(--special); color: white; box-shadow: 0 4px 10px rgba(245, 158, 11, 0.4); }
+
+/* 【必須修正③】独自アイコン用クラス */
+.icon-circle { 
+    border-radius: 50%; 
+    background-color: var(--icon-guest); 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    transition: 0.3s;
+    box-shadow: inset 0 0 10px rgba(0,0,0,0.1);
+}
+.icon-circle.blue { background-color: var(--icon-blue); }
+.icon-circle.green { background-color: var(--icon-green); }
+.icon-circle.purple { background-color: var(--icon-purple); }
+.icon-circle.orange { background-color: var(--icon-orange); }
+
+.color-chip { width: 35px; height: 35px; border-radius: 50%; cursor: pointer; transition: 0.2s; border: 3px solid transparent; }
+.color-chip:active { transform: scale(0.8); }
+.bg-blue { background: var(--icon-blue); }
+.bg-green { background: var(--icon-green); }
+.bg-purple { background: var(--icon-purple); }
+.bg-orange { background: var(--icon-orange); }
 
 /* ボタン共通 */
 .btn-common { display: inline-flex; align-items: center; justify-content: center; border: none; border-radius: var(--radius); font-weight: 800; cursor: pointer; transition: var(--transition); gap: 8px; }
@@ -59,7 +88,7 @@ body { font-family: 'Noto Sans JP', sans-serif; background-color: var(--bg); col
 .btn-secondary { background: var(--border); color: var(--text-main); }
 .btn-giant { width: 100%; height: 64px; font-size: 1.1rem; }
 
-/* チップ・入力 */
+/* 入力・チップ */
 .mode-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 20px; }
 .mode-chip { background: var(--bg); border: 2.5px solid var(--border); border-radius: 18px; padding: 12px 5px; text-align: center; cursor: pointer; transition: var(--transition); }
 .mode-chip.active { border-color: var(--primary); background: var(--card); transform: scale(1.05); z-index: 2; }
@@ -68,7 +97,6 @@ body { font-family: 'Noto Sans JP', sans-serif; background-color: var(--bg); col
 
 .input-fixed { width: 100%; background: var(--bg); border: 2px solid var(--border); border-radius: 15px; padding: 15px; color: var(--text-main); font-size: 1rem; font-family: inherit; margin-bottom: 15px; transition: 0.3s; }
 .input-fixed:focus { border-color: var(--primary); background: var(--card); }
-.input-fixed:disabled { opacity: 0.4; cursor: not-allowed; background: var(--border); }
 .label-style { font-weight: 900; font-size: 0.85rem; color: var(--text-sub); display: block; margin-bottom: 8px; padding-left: 5px; }
 
 /* スイッチ */
@@ -78,7 +106,7 @@ body { font-family: 'Noto Sans JP', sans-serif; background-color: var(--bg); col
 input:checked + .switch-dot { background: var(--primary); }
 input:checked + .switch-dot::after { left: 22px; }
 
-/* 火の評価 */
+/* 評価火アイコン */
 .fire-container { display: flex; justify-content: center; gap: 10px; margin: 25px 0; }
 .fire-icon { font-size: 3rem; cursor: pointer; filter: grayscale(1) opacity(0.3); transition: 0.3s; }
 .fire-icon.active { filter: grayscale(0) opacity(1); transform: scale(1.2); }
@@ -86,7 +114,6 @@ input:checked + .switch-dot::after { left: 22px; }
 /* ヘッダー */
 .header { position: sticky; top: 0; height: 70px; background: rgba(var(--card), 0.8); backdrop-filter: blur(20px); z-index: 1000; border-bottom: 1px solid var(--border); }
 .header-inner { max-width: 480px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; height: 100%; padding: 0 20px; }
-.logo-box { display: flex; flex-direction: column; line-height: 1.2; }
 .logo { font-family: 'Outfit', sans-serif; font-weight: 800; font-size: 1.4rem; cursor: pointer; }
 .page-title-label { font-size: 0.65rem; font-weight: 900; color: var(--primary); letter-spacing: 0.05em; }
 
@@ -107,8 +134,6 @@ input:checked + .switch-dot::after { left: 22px; }
 .modal-card.active { display: block; animation: modalScale 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
 
 .info-h2 { font-size: 1.4rem; font-weight: 900; color: var(--primary); margin-bottom: 15px; }
-.info-h3 { font-size: 1rem; font-weight: 800; margin: 20px 0 10px; border-left: 4px solid var(--primary); padding-left: 10px; }
-.info-p { font-size: 0.9rem; line-height: 1.8; color: var(--text-sub); margin-bottom: 15px; }
 .step-box { background: var(--bg); padding: 12px; border-radius: 12px; margin-bottom: 8px; font-size: 0.85rem; }
 
 .slot-machine { background: var(--slot-bg); border-radius: 20px; padding: 20px; color: white; margin-bottom: 20px; }

@@ -54,11 +54,16 @@
     </div>
 </div>
 
+<div id="thanks-modal" class="modal-card">
+    <div style="font-size:4rem; text-align:center; margin-bottom:15px;">🙏</div>
+    <h2 class="info-h2" style="text-align:center;">送信完了！</h2>
+    <p style="text-align:center; font-weight:700; line-height:1.6;">ご利用ありがとうございます！<br>またのご利用をお待ちしています。</p>
+    <div style="margin-top:20px; text-align:center; color:var(--text-sub); font-size:0.8rem;">自動でホームに戻ります...</div>
+</div>
+
 <nav id="side-menu" class="side-menu">
     <div id="side-user-profile" class="card" style="padding:15px; background:var(--bg); margin-bottom:20px; border:none; text-align:center;">
-        <div id="side-user-icon" style="width:50px; height:50px; border-radius:50%; background:var(--border); margin:0 auto 10px; overflow:hidden; display:none;">
-            <img id="side-img-src" src="" style="width:100%; height:100%; object-fit:cover;">
-        </div>
+        <div id="side-user-icon" class="icon-circle" style="width:60px; height:60px; margin:0 auto 10px;"></div>
         <div id="side-name-label" style="font-weight:900;">ゲスト様</div>
         <div id="side-title-badge" class="badge badge-normal" style="margin-top:5px; font-size:0.6rem; display:none;"></div>
     </div>
@@ -90,7 +95,7 @@
 </header>
 
 <main class="container">
-    <section id="welcome-screen" class="screen">
+    <section id="welcome-screen" class="screen" style="display:block;">
         <div class="card" style="text-align:center; padding:60px 20px;">
             <div style="font-size:4rem; margin-bottom:20px; animation: float 3s infinite;">🎊</div>
             <h1 style="font-family:'Outfit'; font-size:2.6rem; margin:0;">EN-KAI</h1>
@@ -102,12 +107,20 @@
 
     <section id="profile-screen" class="screen" style="display:none">
         <div class="card" style="text-align:center;">
-            <div id="p-icon-box" style="width:80px; height:80px; border-radius:50%; background:var(--bg); margin:0 auto 15px; overflow:hidden;">
-                <img id="p-img-src" src="" style="width:100%; height:100%; object-fit:cover; display:none;">
-            </div>
+            <div id="p-icon-box" class="icon-circle" style="width:100px; height:100px; margin:0 auto 15px;"></div>
             
             <div id="login-prompt" class="step-box" style="color:var(--danger); background:rgba(255,71,87,0.1); margin-bottom:20px; display:none;">
                 ログインするとプロフィール編集が可能です
+            </div>
+
+            <div id="icon-selector-area" style="display:none; margin-bottom:25px;">
+                <label class="label-style">アイコンカラーを選択</label>
+                <div style="display:flex; justify-content:center; gap:15px; margin-top:10px;">
+                    <div class="color-chip bg-blue" onclick="updateIconColor('blue')"></div>
+                    <div class="color-chip bg-green" onclick="updateIconColor('green')"></div>
+                    <div class="color-chip bg-purple" onclick="updateIconColor('purple')"></div>
+                    <div class="color-chip bg-orange" onclick="updateIconColor('orange')"></div>
+                </div>
             </div>
 
             <div id="current-title-container" style="margin-bottom:15px;">
@@ -124,7 +137,7 @@
                     <div id="stat-count" style="font-size:1.6rem; font-weight:900; color:var(--primary);">0</div>
                 </div>
                 <div class="card" style="margin:0; padding:15px; grid-column: span 2; text-align: left;">
-                    <small class="label-style">【⑦】獲得済みの称号から選択</small>
+                    <small class="label-style">獲得済みの称号から選択</small>
                     <select id="title-selector" class="input-fixed" style="margin-bottom:0; padding:8px;" onchange="changeSelectedTitle()">
                         <option value="">称号を選択</option>
                     </select>
@@ -132,7 +145,7 @@
             </div>
 
             <div id="special-title-area" style="margin-top:15px; text-align: left; display:none;">
-                <label class="label-style">【⑨】期間限定称号の表示</label>
+                <label class="label-style">期間限定称号の表示</label>
                 <label class="switch-container">
                     <span id="special-title-name" style="font-size:0.85rem; font-weight:800;">期間限定称号</span>
                     <input type="checkbox" id="special-title-sw" style="display:none" onchange="toggleSpecialTitle()">
