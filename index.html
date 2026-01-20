@@ -44,6 +44,25 @@
     <p style="font-size:0.75rem; color:var(--text-sub); text-align:center; margin:15px 0;">※保存にはログインが便利です</p>
     <button class="btn-common btn-primary btn-giant" onclick="closeFirstGuide()">はじめる</button>
 </div>
+<div id="feedback-modal" class="modal-card">
+  <div style="font-size:3rem; text-align:center; margin-bottom:10px;">💌</div>
+  <h2 class="info-h2" style="text-align:center;">フィードバックを送る</h2>
+
+  <label class="label-style">お名前（任意）</label>
+  <input id="fb-name" class="input-fixed" type="text" placeholder="例：たなりんくん">
+
+  <label class="label-style">内容（必須）</label>
+  <textarea id="fb-message" class="input-fixed" rows="5" placeholder="良かった点 / 直してほしい点 / 欲しい機能 など"></textarea>
+
+  <div style="display:flex; gap:10px; margin-top:10px;">
+    <button class="btn-common btn-secondary" style="flex:1; height:54px;" onclick="closeAllModals()">キャンセル</button>
+    <button class="btn-common btn-primary" style="flex:1; height:54px;" onclick="sendFeedback()">送信</button>
+  </div>
+
+  <p style="margin-top:12px; font-size:0.72rem; color:var(--text-sub); line-height:1.4; text-align:center;">
+    ※送信ボタンでメール作成画面が開きます（アプリ内から自動送信はできません）
+  </p>
+</div>
 
 <div id="confirm-modal" class="modal-card">
     <div style="font-size:3rem; text-align:center; margin-bottom:10px;">🍻</div>
@@ -59,6 +78,25 @@
     <h2 class="info-h2" style="text-align:center;">送信完了！</h2>
     <p style="text-align:center; font-weight:700; line-height:1.6;">ご利用ありがとうございます！<br>またのご利用をお待ちしています。</p>
     <div style="margin-top:20px; text-align:center; color:var(--text-sub); font-size:0.8rem;">自動でホームに戻ります...</div>
+</div>
+<div id="feedback-modal" class="modal-card">
+  <div style="font-size:3rem; text-align:center; margin-bottom:10px;">💌</div>
+  <h2 class="info-h2" style="text-align:center;">フィードバック</h2>
+
+  <label class="label-style">お名前（任意）</label>
+  <input id="fb-name" class="input-fixed" type="text" placeholder="例：たなりんくん" />
+
+  <label class="label-style">内容（必須）</label>
+  <textarea id="fb-message" class="input-fixed" rows="5" placeholder="良かった点 / 直してほしい点 / 欲しい機能など"></textarea>
+
+  <div style="display:flex; gap:10px; margin-top:10px;">
+    <button class="btn-common btn-secondary" style="flex:1; height:54px;" onclick="closeAllModals()">閉じる</button>
+    <button class="btn-common btn-primary" style="flex:1; height:54px;" onclick="sendFeedback()">送る</button>
+  </div>
+
+  <p style="margin-top:12px; font-size:0.75rem; color:var(--text-sub); text-align:center;">
+    ※送信するとメール作成画面が開きます
+  </p>
 </div>
 
 <nav id="side-menu" class="side-menu">
@@ -306,9 +344,11 @@
         </div>
 
         <div style="border-top: 1px solid #eee; padding-top: 20px;">
-            <button class="btn-common btn-primary btn-giant" onclick="nav('welcome-screen')">
-                想いを受け取って戻る
-            </button>
+            <button class="btn-common btn-primary btn-giant" onclick="openFeedbackModal()">
+                 想いを送る
+                </button>
+
+
         </div>
     </div>
 </section>

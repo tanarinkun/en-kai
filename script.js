@@ -2,6 +2,7 @@
  * ==========================================================================
  * EN-KAI CORE SCRIPT (v16.2.0)
  * 修正：初期表示バグ修正、感謝ポップアップ、プライバシー保護アイコン機能
+ * + add-on：リップル/軽いハプ/画面遷移OUT/スクロールカード/レポート段差/フィードバック
  * ==========================================================================
  */
 
@@ -27,7 +28,7 @@
         'about-screen': '制作者'
     };
 
-    // 称号データ
+    // צור号データ
     const titlesData = [
         { count: 0, label: "新人幹事候補" },
         { count: 1, label: "ビギナー幹事" },
@@ -59,40 +60,137 @@
         isLoggedIn: false,
         partyCount: 0,
         selectedTitle: "新人幹事候補",
-        specialTitle: "", 
+        specialTitle: "",
         isSpecialTitleActive: false
     };
 
+    // デバッグやフィードバック送信で参照できるように（安全な範囲だけ）
+    window.state = state;
+
+    // ===== add-on共通 =====
+    const prefersReduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    function haptic(ms = 8) {
+        if (prefersReduce) return;
+        try { if (navigator.vibrate) navigator.vibrate(ms); } catch(e) {}
+    }
+
+    function popOnce(el, cls) {
+        if (!el || prefersReduce) return;
+        el.classList.remove(cls);
+        void el.offsetWidth;
+        el.classList.add(cls);
+    }
+
+    function enableRipple(selector) {
+        document.querySelectorAll(selector).forEach(el => {
+            if (el.dataset.rippleDone) return;
+            el.dataset.rippleDone = "1";
+            el.classList.add("ripple");
+
+            el.addEventListener("click", (ev) => {
+                if (prefersReduce) return;
+                const rect = el.getBoundingClientRect();
+                const x = ev.clientX - rect.left;
+                const y = ev.clientY - rect.top;
+
+                const s = document.createElement("span");
+                s.className = "rip";
+                s.style.left = x + "px";
+                s.style.top = y + "px";
+                el.appendChild(s);
+
+                setTimeout(() => s.remove(), 600);
+            }, { passive: true });
+        });
+    }
+
+    function setupRevealCards() {
+        const cards = Array.from(document.querySelectorAll('.card'));
+        if (!cards.length) return;
+
+        cards.forEach(c => c.classList.add('reveal-ready'));
+
+        if (prefersReduce || !('IntersectionObserver' in window)) {
+            cards.forEach(c => {
+                c.classList.remove('reveal-ready');
+                c.classList.add('reveal-in');
+            });
+            return;
+        }
+
+        const io = new IntersectionObserver((entries) => {
+            entries.forEach(e => {
+                if (!e.isIntersecting) return;
+                const el = e.target;
+                el.classList.add('reveal-in');
+                el.classList.remove('reveal-ready');
+                io.unobserve(el);
+            });
+        }, { threshold: 0.12, rootMargin: '0px 0px -10% 0px' });
+
+        cards.forEach(c => io.observe(c));
+    }
+
+    function observeStaggerList() {
+        const list = document.getElementById('report-list');
+        if (!list || !('MutationObserver' in window)) return;
+
+        const mo = new MutationObserver(() => {
+            const items = Array.from(list.children);
+            items.forEach((el, idx) => {
+                if (el.dataset.staggerDone) return;
+                el.dataset.staggerDone = "1";
+                el.style.animationDelay = (Math.min(idx, 12) * 45) + "ms";
+                el.classList.add('stagger-in');
+            });
+        });
+        mo.observe(list, { childList: true, subtree: false });
+    }
+
     // --- 【必須修正①】画面遷移 & 初期表示保証 ---
-    window.nav = function(id) {
+    const _baseNav = function(id) {
         console.log("Navigating to:", id);
         const screens = document.querySelectorAll('.screen');
-        
+
         // 全画面を非表示
         screens.forEach(s => {
             s.style.display = 'none';
-            s.classList.remove('active'); // アニメーション用クラスがあれば除去
+            s.classList.remove('active');
+            s.classList.remove('screen-out'); // add-on: out演出クラスも除去
         });
 
         const target = document.getElementById(id);
         if (target) {
-            target.style.display = 'block'; 
-            // タイトル更新
+            target.style.display = 'block';
             const label = document.getElementById('current-page-name');
             if(label) label.innerText = pageTitlesJp[id] || 'EN-KAI';
         } else {
-            // 指定のIDがない場合はwelcomeを強制
             const welcome = document.getElementById('welcome-screen');
             if(welcome) welcome.style.display = 'block';
         }
-        
+
         closeAllModals();
         window.scrollTo(0, 0);
 
-        // プロフィール画面ならデータ再読込
         if (id === 'profile-screen') {
             fetchUserStats();
-            renderColorPicker(); // 【修正③】カラー選択肢を表示
+            renderColorPicker();
+        }
+    };
+
+    // add-on: 画面遷移 OUT → nav
+    window.nav = function(id) {
+        if (prefersReduce) return _baseNav(id);
+
+        const current = Array.from(document.querySelectorAll('.screen'))
+            .find(s => s && s.style && s.style.display === 'block');
+
+        if (current) {
+            current.classList.add('screen-out');
+            setTimeout(() => _baseNav(id), 140);
+        } else {
+            _baseNav(id);
         }
     };
 
@@ -102,16 +200,19 @@
         const overlay = document.getElementById('overlay');
         const confirmModal = document.getElementById('confirm-modal');
         const guideModal = document.getElementById('first-guide-modal');
-        const thanksModal = document.getElementById('thanks-modal'); // 感謝ポップアップ用
+        const thanksModal = document.getElementById('thanks-modal');
+        const feedbackModal = document.getElementById('feedback-modal'); // ★追加
 
         if(sideMenu) sideMenu.classList.remove('active');
         if(overlay) overlay.classList.remove('active');
         if(confirmModal) confirmModal.classList.remove('active');
         if(guideModal) guideModal.classList.remove('active');
         if(thanksModal) thanksModal.classList.remove('active');
+        if(feedbackModal) feedbackModal.classList.remove('active'); // ★追加
     };
 
     window.toggleMenu = function() {
+        haptic(6);
         document.getElementById('side-menu').classList.toggle('active');
         document.getElementById('overlay').classList.toggle('active');
     };
@@ -141,12 +242,10 @@
     };
 
     // --- 【必須修正③】プロフィール & カラーシステム ---
-
-    // カラーピッカーの描画
     function renderColorPicker() {
         const container = document.getElementById('color-picker-container');
         if (!container) return;
-        
+
         container.innerHTML = "";
         iconColors.forEach(color => {
             const btn = document.createElement('div');
@@ -159,7 +258,7 @@
             btn.style.margin = '5px';
             btn.style.cursor = 'pointer';
             btn.style.border = (state.userColor === color.code) ? '3px solid var(--primary)' : '2px solid transparent';
-            
+
             btn.onclick = () => selectColor(color.code);
             container.appendChild(btn);
         });
@@ -173,23 +272,18 @@
         toast("アイコン色を変更しました");
     }
 
-    // アイコンの表示更新（画像URLは一切使わず、背景色で表現）
     function updateIconUI() {
-        const sideIcon = document.getElementById('side-user-icon');
-        const profileIcon = document.getElementById('p-user-icon'); // プロフィール側のコンテナ
-
-        // サイドメニューのアイコン（imgタグではなくdiv等で背景色をつける運用を想定）
         const sImg = document.getElementById('side-img-src');
         const pImg = document.getElementById('p-img-src');
 
         if (state.isLoggedIn) {
             if(sImg) {
-                sImg.src = ""; // Google画像はクリア
+                sImg.src = "";
                 sImg.style.backgroundColor = state.userColor;
                 sImg.style.borderRadius = "50%";
             }
             if(pImg) {
-                pImg.src = ""; // Google画像はクリア
+                pImg.src = "";
                 pImg.style.backgroundColor = state.userColor;
                 pImg.style.borderRadius = "50%";
             }
@@ -201,21 +295,19 @@
 
     async function fetchUserStats() {
         if (!state.isLoggedIn || !window.fb) return;
-        
+
         const countEl = document.getElementById('stat-count');
         const selector = document.getElementById('title-selector');
-        
+
         try {
-            // 開催数の取得
             const q = window.fb.query(
-                window.fb.collection(window.db, "sessions"), 
+                window.fb.collection(window.db, "sessions"),
                 window.fb.where("uid", "==", window.auth.currentUser.uid)
             );
             const snap = await window.fb.getDocs(q);
             state.partyCount = snap.size;
             if(countEl) countEl.innerText = state.partyCount;
 
-            // ユーザー設定の取得（選択中称号、カラー）
             const userDoc = await window.fb.getDoc(window.fb.doc(window.db, "users", window.auth.currentUser.uid));
             if (userDoc.exists()) {
                 const data = userDoc.data();
@@ -227,7 +319,6 @@
 
             checkSpecialTitles();
 
-            // 称号セレクトボックス更新
             if(selector) {
                 selector.innerHTML = "";
                 titlesData.forEach(t => {
@@ -302,7 +393,7 @@
             selectedTitle: state.selectedTitle,
             isSpecialTitleActive: state.isSpecialTitleActive,
             displayName: state.userName,
-            userColor: state.userColor // カラーをFirestoreに保存
+            userColor: state.userColor
         }, { merge: true });
     }
 
@@ -316,6 +407,7 @@
 
     // --- 宴会進行ロジック ---
     window.setMode = function(mode, id) {
+        haptic(6);
         state.mode = mode;
         document.querySelectorAll('.mode-chip').forEach(c => c.classList.remove('active'));
         const chip = document.getElementById(id);
@@ -333,11 +425,11 @@
         const namesInp = document.getElementById('names');
         const names = namesInp ? namesInp.value.trim() : "";
         if (isSlot && !names) { toast("メンバー名を入力してください"); return; }
-        
+
         state.members = names ? names.split(/[\s　]+/) : ["参加者"];
         state.activeTopics = topics[state.mode].slice().sort(() => Math.random() - 0.5);
         state.currIdx = 0;
-        
+
         const slotUi = document.getElementById('slot-ui');
         if(slotUi) slotUi.style.display = isSlot ? 'block' : 'none';
         window.nav('main-screen');
@@ -351,36 +443,70 @@
         if(count) count.innerText = `Progress ${state.currIdx + 1} / ${state.activeTopics.length}`;
     }
 
-    window.nextQ = function() {
-        if (state.currIdx < state.activeTopics.length - 1) { 
-            state.currIdx++; renderQ(); 
+    // add-on: next/prevにふわっと差し替え
+    const _baseNextQ = function() {
+        if (state.currIdx < state.activeTopics.length - 1) {
+            state.currIdx++; renderQ();
         } else { window.nav('finish-screen'); }
     };
 
-    window.prevQ = function() { if (state.currIdx > 0) { state.currIdx--; renderQ(); } };
+    const _basePrevQ = function() {
+        if (state.currIdx > 0) { state.currIdx--; renderQ(); }
+    };
 
+    window.nextQ = function() {
+        haptic(10);
+        _baseNextQ();
+        popOnce(document.getElementById('topic-disp'), 'swap-up');
+        popOnce(document.getElementById('q-count'), 'swap-up');
+    };
+
+    window.prevQ = function() {
+        haptic(8);
+        _basePrevQ();
+        popOnce(document.getElementById('topic-disp'), 'swap-down');
+        popOnce(document.getElementById('q-count'), 'swap-down');
+    };
+
+    // add-on: スロット演出（ブラー/ジッタはCSSに依存）
     window.spin = function() {
+        haptic(16);
+
         const t = document.getElementById('s-target'), k = document.getElementById('s-task');
         if(!t || !k) return;
+
+        t.classList.add('slot-spinning','slot-jitter');
+        k.classList.add('slot-spinning','slot-jitter');
+
         let c = 0;
         const itv = setInterval(() => {
             t.innerText = state.members[Math.floor(Math.random() * state.members.length)];
             k.innerText = missions[Math.floor(Math.random() * missions.length)];
-            if (++c > 15) clearInterval(itv);
+            if (++c > 15) {
+                clearInterval(itv);
+                setTimeout(() => {
+                    t.classList.remove('slot-spinning','slot-jitter');
+                    k.classList.remove('slot-spinning','slot-jitter');
+                }, 120);
+            }
         }, 60);
     };
 
     window.setRate = function(v) {
+        haptic(5);
         state.rating = v;
-        document.querySelectorAll('.fire-icon').forEach((icon, i) => icon.classList.toggle('active', i < v));
+        const icons = document.querySelectorAll('.fire-icon');
+        const before = document.querySelectorAll('.fire-icon.active').length;
+
+        icons.forEach((icon, i) => icon.classList.toggle('active', i < v));
+        for (let i = before; i < v; i++) popOnce(icons[i], 'fire-pop');
     };
 
     // --- 【必須修正②】レポート保存 & 感謝メッセージ ---
     window.save = async function() {
         if (state.rating === 0) { toast("評価を選んでください"); return; }
         if (!window.fb) { toast("保存エラー"); return; }
-        
-        // 保存ボタンを一時無効化
+
         const btn = document.querySelector('.btn-save');
         if(btn) btn.disabled = true;
 
@@ -388,39 +514,34 @@
             await window.fb.addDoc(window.fb.collection(window.db, "sessions"), {
                 uid: window.auth.currentUser ? window.auth.currentUser.uid : "guest",
                 partyName: document.getElementById('party-name').value || "無題の宴",
-                userName: state.userName, 
+                userName: state.userName,
                 rating: state.rating,
-                memo: document.getElementById('memo').value, 
+                memo: document.getElementById('memo').value,
                 timestamp: Date.now(),
                 title: state.selectedTitle,
-                userColor: state.userColor, // アイコン色も保存
+                userColor: state.userColor,
                 specialTitle: state.isSpecialTitleActive ? state.specialTitle : ""
             });
 
-            // 感謝ポップアップの表示
             showThanksModal();
-
-        } catch(e) { 
+        } catch(e) {
             console.error(e);
-            toast("保存に失敗しました"); 
+            toast("保存に失敗しました");
             if(btn) btn.disabled = false;
         }
     };
 
-    // 感謝モーダルの制御
     function showThanksModal() {
         const modal = document.getElementById('thanks-modal') || createThanksModal();
         modal.classList.add('active');
         document.getElementById('overlay').classList.add('active');
-        
-        // 3秒後に自動的にホームに戻る（またはリロード）
+
         setTimeout(() => {
-            location.reload(); // 状態リセットのためリロードを推奨
+            location.reload();
         }, 3500);
     }
 
     function createThanksModal() {
-        // もしHTMLにない場合に動的生成
         const m = document.createElement('div');
         m.id = 'thanks-modal';
         m.className = 'modal';
@@ -440,17 +561,20 @@
         window.nav('report-screen');
         const list = document.getElementById('report-list');
         if(!list) return;
+
         list.innerHTML = "<p style='text-align:center;'>読込中...</p>";
+
         try {
             const q = window.fb.query(window.fb.collection(window.db, "sessions"), window.fb.orderBy("timestamp", "desc"), window.fb.limit(15));
             const snap = await window.fb.getDocs(q);
             let html = "";
+
             snap.forEach(doc => {
                 const d = doc.data();
                 const badgeHtml = d.title ? `<span class="badge badge-normal" style="font-size:0.6rem;">${d.title}</span>` : "";
                 const specialHtml = d.specialTitle ? `<span class="badge badge-special" style="font-size:0.6rem;">${d.specialTitle}</span>` : "";
                 const userColor = d.userColor || "#bdc3c7";
-                
+
                 html += `<div class="card" style="padding:15px; margin-bottom:12px;">
                     <div style="display:flex; justify-content:space-between; align-items:flex-start;">
                         <div style="display:flex; gap:10px;">
@@ -465,25 +589,75 @@
                     <p style="margin:8px 0 0; font-size:0.85rem; color:var(--text-sub); border-top:1px solid var(--border); padding-top:8px;">${d.memo || ""}</p>
                 </div>`;
             });
+
             list.innerHTML = html || "まだ記録がありません";
-        } catch(e) { list.innerHTML = "読込に失敗しました"; }
+
+            // add-on: 段差アニメ監視（このタイミングで確実に動く）
+            observeStaggerList();
+
+        } catch(e) {
+            list.innerHTML = "読込に失敗しました";
+        }
     };
 
     // 認証
-    window.login = async function() { 
+    window.login = async function() {
         if (!window.fb) return;
-        try { 
-            await window.fb.signInWithPopup(window.auth, new window.fb.GoogleAuthProvider()); 
-            // ログイン後のリロードで初期化
+        try {
+            await window.fb.signInWithPopup(window.auth, new window.fb.GoogleAuthProvider());
             location.reload();
-        } catch(e) { toast("ログイン失敗"); } 
+        } catch(e) { toast("ログイン失敗"); }
     };
 
-    window.logout = async function() { 
-        if (confirm("ログアウトしますか？")) { 
-            await window.fb.signOut(window.auth); 
-            location.reload(); 
-        } 
+    window.logout = async function() {
+        if (confirm("ログアウトしますか？")) {
+            await window.fb.signOut(window.auth);
+            location.reload();
+        }
+    };
+
+    // ===== Feedback Modal + Mailto =====
+    window.openFeedbackModal = function() {
+        try {
+            const overlay = document.getElementById('overlay');
+            const modal = document.getElementById('feedback-modal');
+            if (!overlay || !modal) {
+                toast("フィードバックフォームが見つかりません");
+                return;
+            }
+
+            overlay.classList.add('active');
+            modal.classList.add('active');
+
+            const msg = document.getElementById('fb-message');
+            if (msg) setTimeout(() => msg.focus(), 50);
+        } catch(e) {}
+    };
+
+    window.sendFeedback = function() {
+        const to = "rin.tk.uni@gmail.com";
+        const name = (document.getElementById('fb-name')?.value || "").trim();
+        const msg  = (document.getElementById('fb-message')?.value || "").trim();
+
+        if (!msg) { toast("内容を入力してね"); return; }
+
+        const dark = document.body.classList.contains('dark-mode') ? "dark" : "light";
+        const subject = `EN-KAI フィードバック${name ? "（" + name + "）" : ""}`;
+        const body =
+`【フィードバック】
+${msg}
+
+【任意情報】
+name: ${name || "-"}
+user: ${state.userName || "-"}
+mode: ${state.mode || "-"}
+theme: ${dark}
+ua: ${navigator.userAgent}
+`;
+
+        const url = `mailto:${to}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+        location.href = url;
+        toast("メール作成画面を開いたよ");
     };
 
     function toast(m) {
@@ -502,11 +676,17 @@
     document.addEventListener('DOMContentLoaded', () => {
         console.log("DOM loaded.");
         if (localStorage.getItem('dark') === 'true') document.body.classList.add('dark-mode');
-        
-        // 1. 最初に必ず初期画面を表示 ( nav()が呼ばれない空白バグ対策 )
+
+        // 1. 最初に必ず初期画面を表示
         window.nav('welcome-screen');
         checkFirstVisit();
-        
+
+        // add-on: ここでまとめて演出を有効化（重複DOMContentLoaded禁止）
+        enableRipple(".btn-common");
+        enableRipple(".nav-link");
+        enableRipple(".mode-chip");
+        setupRevealCards();
+
         const checkAuth = setInterval(() => {
             if (window.fb && window.auth) {
                 clearInterval(checkAuth);
@@ -518,43 +698,41 @@
 
                     if (user) {
                         state.isLoggedIn = true;
-                        // Googleからの情報は初期値としてのみ使用（その後はFirestore優先）
                         state.userName = user.displayName || "名無し幹事";
-                        
-                        if(lBtn) lBtn.style.display = 'none'; 
+
+                        if(lBtn) lBtn.style.display = 'none';
                         if(loBtn) loBtn.style.display = 'block';
-                        if(nInp) nInp.disabled = false; 
-                        if(prompt) prompt.style.display = 'none'; 
+                        if(nInp) nInp.disabled = false;
+                        if(prompt) prompt.style.display = 'none';
                         if(pLBtn) pLBtn.style.display = 'none';
                         if(tSelector) tSelector.disabled = false;
                         if(sIcon) sIcon.style.display = 'block';
 
-                        // ユーザーデータを取得して反映
                         await fetchUserStats();
                     } else {
                         state.isLoggedIn = false;
                         state.userName = "ゲスト";
                         state.userColor = "#bdc3c7";
-                        
-                        if(lBtn) lBtn.style.display = 'block'; 
+
+                        if(lBtn) lBtn.style.display = 'block';
                         if(loBtn) loBtn.style.display = 'none';
-                        if(nInp) nInp.disabled = true; 
-                        if(prompt) prompt.style.display = 'block'; 
+                        if(nInp) nInp.disabled = true;
+                        if(prompt) prompt.style.display = 'block';
                         if(pLBtn) pLBtn.style.display = 'block';
                         if(tSelector) tSelector.disabled = true;
                         if(sIcon) sIcon.style.display = 'none';
                     }
-                    
+
                     if(nInp) nInp.value = state.userName;
                     const nameLabel = document.getElementById('side-name-label');
                     if(nameLabel) nameLabel.innerText = state.userName + " 様";
-                    
+
                     updateIconUI();
                 });
             }
         }, 200);
 
-        // 予備：万が一の空白回避のため2秒後にもう一度チェック
+        // 予備：万が一の空白回避
         setTimeout(() => {
             const visibleScreens = Array.from(document.querySelectorAll('.screen')).filter(s => s.style.display === 'block');
             if (visibleScreens.length === 0) {
@@ -563,4 +741,5 @@
             }
         }, 2000);
     });
+
 })();

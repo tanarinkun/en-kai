@@ -1,4 +1,5 @@
-const CACHE_NAME = 'enkai-v1';
+// sw.js
+const CACHE_NAME = 'enkai-v2'; // v1 → v2 にするだけでも反映が安定
 const urlsToCache = [
   'index.html',
   'style.css',

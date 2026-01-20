@@ -141,3 +141,257 @@ input:checked + .switch-dot::after { left: 22px; }
 
 .toast { position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%); background: var(--text-main); color: var(--card); padding: 16px 32px; border-radius: 50px; font-weight: 800; z-index: 5000; display: none; }
 .toast.active { display: block; animation: screenIn 0.3s forwards; }
+/* ===== polish pack (add-on) ===== */
+
+/* 触った感を強化：ホバー/フォーカス */
+.btn-common, .mode-chip, .nav-link, .card {
+  will-change: transform;
+}
+
+.btn-common:hover { transform: translateY(-1px); }
+.btn-common:active { transform: scale(0.97); }
+
+/* キーボード操作でも見やすく（スマホにも害なし） */
+:focus-visible {
+  outline: 3px solid var(--primary);
+  outline-offset: 3px;
+  border-radius: 14px;
+}
+
+/* カードの“面”を少しリッチに */
+.card::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  border-radius: 28px;
+  pointer-events:none;
+  background: linear-gradient(180deg, rgba(255,255,255,0.10), rgba(255,255,255,0.00));
+  opacity: 0.8;
+}
+body.dark-mode .card::before{
+  background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.00));
+}
+
+/* nav-linkの押し心地 */
+.nav-link:hover { background: rgba(100,116,139,0.10); }
+.nav-link:active { transform: scale(0.98); }
+
+/* モードチップ：選択中の“勝ち”を明確に */
+.mode-chip.active {
+  box-shadow: 0 10px 24px -10px var(--primary-glow);
+}
+
+/* トースト：少しヌルっと */
+.toast {
+  box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+}
+
+/* 画面切替をより気持ちよく（既存 screenIn を活かす） */
+.screen {
+  transform-origin: top center;
+}
+
+/* Topic切替用：JSで付けるクラス */
+.fade-swap {
+  animation: fadeSwap 220ms ease-out;
+}
+@keyframes fadeSwap {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* リップル（JSでspan入れる） */
+.ripple {
+  position: relative;
+  overflow: hidden;
+}
+.ripple > .rip {
+  position:absolute;
+  border-radius: 999px;
+  transform: translate(-50%, -50%);
+  animation: rip 520ms ease-out forwards;
+  background: rgba(255,255,255,0.55);
+  pointer-events:none;
+  mix-blend-mode: overlay;
+}
+@keyframes rip {
+  from { width: 0; height: 0; opacity: 0.9; }
+  to   { width: 420px; height: 420px; opacity: 0; }
+}
+
+/* 端末設定で“動き減らす”がONなら停止（礼儀） */
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; }
+}
+/* ===== EN-KAI Animation Pack (add-on) ===== */
+
+/* 画面OUT（navをラップして使う） */
+.screen.screen-out {
+  animation: screenOut 160ms ease-in forwards;
+}
+@keyframes screenOut {
+  from { opacity: 1; transform: translateY(0) scale(1); }
+  to   { opacity: 0; transform: translateY(10px) scale(0.99); }
+}
+
+/* テキスト差し替え：ふわっ + 方向 */
+.swap-up { animation: swapUp 220ms ease-out; }
+@keyframes swapUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.swap-down { animation: swapDown 220ms ease-out; }
+@keyframes swapDown {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ボタン押下：ぷにっ（既存のhover/activeに上乗せ） */
+.press-pop { animation: pressPop 160ms ease-out; }
+@keyframes pressPop {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(0.96); }
+  100% { transform: scale(1); }
+}
+
+/* サイドメニュー：バウンドIN */
+.side-menu.active { animation: menuIn 420ms cubic-bezier(0.2, 0.9, 0.2, 1.1); }
+@keyframes menuIn {
+  from { transform: translateX(18px); }
+  to   { transform: translateX(0); }
+}
+
+/* オーバーレイ：フェード */
+.overlay.active { animation: overlayFade 200ms ease-out; }
+@keyframes overlayFade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* モーダル：既存 modalScale に“光”を足す */
+.modal-card.active { box-shadow: 0 30px 90px rgba(0,0,0,0.35); }
+
+/* トースト：少し上から入る */
+.toast.active { animation: toastIn 280ms ease-out forwards; }
+@keyframes toastIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* スロット：回転中の“ブラー感” */
+.slot-spinning {
+  filter: blur(0.6px);
+  transform: translateZ(0);
+}
+.slot-jitter { animation: jitter 90ms linear infinite; }
+@keyframes jitter {
+  0% { transform: translateY(0); }
+  50% { transform: translateY(-1px); }
+  100% { transform: translateY(0); }
+}
+
+/* 炎評価：点灯時にポップ */
+.fire-pop { animation: firePop 240ms ease-out; }
+@keyframes firePop {
+  from { transform: scale(0.6); filter: brightness(0.9); }
+  to   { transform: scale(1); filter: brightness(1.1); }
+}
+
+/* レポート一覧：段差表示 */
+.stagger-in {
+  animation: staggerIn 260ms ease-out forwards;
+  opacity: 0;
+}
+@keyframes staggerIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* リップル（ボタンに波紋） */
+.ripple { position: relative; overflow: hidden; }
+.ripple > .rip {
+  position: absolute;
+  border-radius: 999px;
+  transform: translate(-50%, -50%);
+  animation: rip 520ms ease-out forwards;
+  background: rgba(255,255,255,0.55);
+  pointer-events: none;
+  mix-blend-mode: overlay;
+}
+@keyframes rip {
+  from { width: 0; height: 0; opacity: 0.9; }
+  to   { width: 420px; height: 420px; opacity: 0; }
+}
+
+/* “動き減らす”設定なら礼儀として停止 */
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; }
+}
+/* ===== Scroll Reveal Cards ===== */
+.card.reveal-ready {
+  opacity: 0;
+  transform: translateY(14px) scale(0.995);
+  filter: blur(0.3px);
+}
+
+.card.reveal-in {
+  animation: revealIn 520ms cubic-bezier(0.18, 0.9, 0.22, 1) forwards;
+}
+
+@keyframes revealIn {
+  from { opacity: 0; transform: translateY(14px) scale(0.995); filter: blur(0.3px); }
+  to   { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+}
+
+/* ===== Background Atmosphere ===== */
+body::before,
+body::after {
+  content: "";
+  position: fixed;
+  inset: -20%;
+  z-index: -2;
+  pointer-events: none;
+}
+
+body::before {
+  background:
+    radial-gradient(closest-side, rgba(80,200,120,0.20), rgba(80,200,120,0) 60%),
+    radial-gradient(closest-side, rgba(102,126,234,0.18), rgba(102,126,234,0) 62%),
+    radial-gradient(closest-side, rgba(245,158,11,0.14), rgba(245,158,11,0) 60%);
+  filter: blur(30px);
+  transform: translate3d(0,0,0);
+  animation: bgFloat 14s ease-in-out infinite;
+}
+
+@keyframes bgFloat {
+  0%   { transform: translate(-3%, -2%) scale(1.02); }
+  50%  { transform: translate(3%, 2%) scale(1.06); }
+  100% { transform: translate(-3%, -2%) scale(1.02); }
+}
+
+/* ノイズ（超うっすい質感） */
+body::after {
+  z-index: -1;
+  opacity: 0.06;
+  background-image:
+    repeating-linear-gradient(0deg, rgba(0,0,0,0.9) 0 1px, rgba(0,0,0,0) 1px 3px),
+    repeating-linear-gradient(90deg, rgba(0,0,0,0.7) 0 1px, rgba(0,0,0,0) 1px 4px);
+  mix-blend-mode: overlay;
+  animation: noiseDrift 8s linear infinite;
+}
+
+@keyframes noiseDrift {
+  from { transform: translate(0,0); }
+  to   { transform: translate(60px, 40px); }
+}
+
+/* dark mode では少し抑える */
+body.dark-mode::before { opacity: 0.85; }
+body.dark-mode::after  { opacity: 0.05; }
+
+/* 動き減らす設定 */
+@media (prefers-reduced-motion: reduce) {
+  .card.reveal-ready { opacity: 1; transform: none; filter: none; }
+  .card.reveal-in { animation: none; }
+  body::before, body::after { animation: none; }
+}
