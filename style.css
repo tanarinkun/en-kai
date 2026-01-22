@@ -395,3 +395,8 @@ body.dark-mode::after  { opacity: 0.05; }
   .card.reveal-in { animation: none; }
   body::before, body::after { animation: none; }
 }
+
+
+/* ===== Footer (Copyright) ===== */
+.app-footer{ padding: 0 20px 18px; }
+.app-footer-inner{ max-width: 480px; margin: 0 auto; text-align: center; color: var(--text-sub); font-size: 0.75rem; font-weight: 800; opacity: 0.85; }

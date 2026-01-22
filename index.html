@@ -79,25 +79,7 @@
     <p style="text-align:center; font-weight:700; line-height:1.6;">ご利用ありがとうございます！<br>またのご利用をお待ちしています。</p>
     <div style="margin-top:20px; text-align:center; color:var(--text-sub); font-size:0.8rem;">自動でホームに戻ります...</div>
 </div>
-<div id="feedback-modal" class="modal-card">
-  <div style="font-size:3rem; text-align:center; margin-bottom:10px;">💌</div>
-  <h2 class="info-h2" style="text-align:center;">フィードバック</h2>
 
-  <label class="label-style">お名前（任意）</label>
-  <input id="fb-name" class="input-fixed" type="text" placeholder="例：たなりんくん" />
-
-  <label class="label-style">内容（必須）</label>
-  <textarea id="fb-message" class="input-fixed" rows="5" placeholder="良かった点 / 直してほしい点 / 欲しい機能など"></textarea>
-
-  <div style="display:flex; gap:10px; margin-top:10px;">
-    <button class="btn-common btn-secondary" style="flex:1; height:54px;" onclick="closeAllModals()">閉じる</button>
-    <button class="btn-common btn-primary" style="flex:1; height:54px;" onclick="sendFeedback()">送る</button>
-  </div>
-
-  <p style="margin-top:12px; font-size:0.75rem; color:var(--text-sub); text-align:center;">
-    ※送信するとメール作成画面が開きます
-  </p>
-</div>
 
 <nav id="side-menu" class="side-menu">
     <div id="side-user-profile" class="card" style="padding:15px; background:var(--bg); margin-bottom:20px; border:none; text-align:center;">
@@ -112,6 +94,7 @@
         <button class="nav-link" onclick="openReport()">📊 宴会レポート</button>
         <button class="nav-link" onclick="nav('guide-screen')">📖 使い方</button>
         <button class="nav-link" onclick="nav('about-screen')">👤 制作者</button>
+        <button class="nav-link" onclick="nav('feedback-screen')">💌 フィードバック</button>
         <div id="auth-area" style="margin-top:20px; border-top:1px solid var(--border); padding-top:10px;">
             <button class="nav-link" id="login-btn" onclick="login()">🔑 Googleでログイン</button>
             <button class="nav-link" id="logout-btn" style="display:none; color:var(--danger);" onclick="logout()">🚪 ログアウト</button>
@@ -353,12 +336,29 @@
     </div>
 </section>
 
-    <section id="report-screen" class="screen" style="display:none">
+    
+<section id="feedback-screen" class="screen" style="display:none">
+    <div class="card" style="text-align:center;">
+        <h2 class="info-h2">💌 フィードバック</h2>
+        <p style="color:var(--text-sub); font-size:0.9rem; line-height:1.7; margin-bottom:20px;">
+            EN-KAIをより良くするために、気づいたこと・改善案・欲しい機能などをぜひ教えてください。<br>
+            送信はGoogleフォームで行います（匿名でもOK）。
+        </p>
+        <button class="btn-common btn-primary btn-giant" onclick="openFeedbackForm()">フィードバックフォームを開く</button>
+        <button class="btn-common btn-secondary" style="width:100%; margin-top:12px; height:50px;" onclick="nav('welcome-screen')">ホームに戻る</button>
+    </div>
+</section>
+<section id="report-screen" class="screen" style="display:none">
         <h2 style="font-weight:900; text-align:center; margin-bottom:15px;">PARTY REPORTS</h2>
         <div id="report-list"></div>
         <button class="btn-common btn-primary btn-giant" onclick="nav('welcome-screen')">ホームに戻る</button>
     </section>
 </main>
+
+<footer class="app-footer">
+    <div class="app-footer-inner">© 2026 EN-KAI</div>
+</footer>
+
 
 <script src="script.js"></script>
 </body>

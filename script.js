@@ -26,7 +26,9 @@
         'guide-screen': '使い方',
         'report-screen': '宴会レポート',
         'about-screen': '制作者'
-    };
+    ,
+        'feedback-screen': 'フィードバック'
+};
 
     // צור号データ
     const titlesData = [
@@ -660,7 +662,23 @@ ua: ${navigator.userAgent}
         toast("メール作成画面を開いたよ");
     };
 
-    function toast(m) {
+    // ===== Feedback Page (Google Form) =====
+window.openFeedbackForm = function() {
+    const url = "https://forms.gle/e4LYJ7rhuajYMp638";
+    try {
+        const w = window.open(url, "_blank", "noopener,noreferrer");
+        if (!w) location.href = url;
+    } catch(e) {
+        location.href = url;
+    }
+};
+
+// 既存のフィードバックモーダル導線が残っていても、フォームへ統一する
+window.openFeedbackModal = function() {
+    window.openFeedbackForm();
+};
+
+function toast(m) {
         const t = document.getElementById('toast');
         if(!t) return;
         t.innerText = m; t.classList.add('active');
@@ -743,3 +761,9 @@ ua: ${navigator.userAgent}
     });
 
 })();
+window.openFeedbackForm = function() {
+    window.open(
+        "https://forms.gle/e4LYJ7rhuajYMp638",
+        "_blank"
+    );
+};
